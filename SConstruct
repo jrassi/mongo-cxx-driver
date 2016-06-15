@@ -47,7 +47,7 @@ elif platform.startswith("linux"):
     platform = "linux"
 elif "sunos5" == platform:
     solaris = True
-elif platform.startswith( "freebsd" ):
+elif platform.startswith( "freebsd" ) || platform.startswith( "gnukfreebsd" ):
     freebsd = True
 elif platform.startswith( "openbsd" ):
     openbsd = True
