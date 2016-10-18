@@ -22,8 +22,8 @@ namespace libmongoc {
 
 #ifdef MONGOCXX_TESTING
 #define MONGOCXX_LIBMONGOC_SYMBOL(name)          \
-    mock::mock<decltype(&mongoc_##name)>& name = \
-        *new mock::mock<decltype(&mongoc_##name)>(mongoc_##name);
+    test_util::mock<decltype(&mongoc_##name)>& name = \
+        *new test_util::mock<decltype(&mongoc_##name)>(mongoc_##name);
 #include "libmongoc_symbols.hh"
 #undef MONGOCXX_LIBMONGOC_SYMBOL
 #endif  // MONGOCXX_TESTING
