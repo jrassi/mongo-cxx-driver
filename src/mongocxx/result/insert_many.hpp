@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <map>
 
+#include <bsoncxx/array/value.hpp>
 #include <bsoncxx/types.hpp>
 #include <mongocxx/result/bulk_write.hpp>
 
@@ -55,7 +56,8 @@ class MONGOCXX_API insert_many {
     ///
     /// Gets the _ids of the inserted documents.
     ///
-    /// @return The values of the _id field for inserted documents.
+    /// @note The returned id_map must not be accessed after the insert_many object is destroyed.
+    /// @return The values of the _id field for all inserted documents.
     ///
     id_map inserted_ids();
 
@@ -63,10 +65,16 @@ class MONGOCXX_API insert_many {
     friend collection;
     friend insert_many_builder;
 
-    MONGOCXX_PRIVATE insert_many(result::bulk_write result, id_map inserted_ids);
+    MONGOCXX_PRIVATE insert_many(result::bulk_write result, bsoncxx::array::view inserted_ids);
 
     result::bulk_write _result;
-    id_map _generated_ids;
+
+    // Array containing documents with the values of the _id field for the inserted documents. This
+    // array is in the following format: [{"_id": ...}, {"_id": ...}, ...].
+    bsoncxx::array::value _inserted_ids_owned;
+
+    // Points into _inserted_ids_owned.
+    id_map _inserted_ids;
 };
 
 }  // namespace result
