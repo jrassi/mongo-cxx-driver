@@ -31,12 +31,12 @@ MONGOCXX_INLINE_NAMESPACE_BEGIN
 class MONGOCXX_API validation_criteria {
    public:
     ///
-    /// Set a validation rule for this validation object.
+    /// Sets a validation rule for this validation object.
     ///
     /// @param rule
     ///   Document representing a validation rule.
     ///
-    void rule(bsoncxx::document::view_or_value rule);
+    validation_criteria& rule(bsoncxx::document::view_or_value rule);
 
     ///
     /// A class to represent the different validation level options.
@@ -48,12 +48,12 @@ class MONGOCXX_API validation_criteria {
     };
 
     ///
-    /// Set a validation level.
+    /// Sets a validation level.
     ///
     /// @param level
     ///   A validation level, "off," "strict," or "moderate."
     ///
-    void level(validation_level level);
+    validation_criteria& level(validation_level level);
 
     ///
     /// A class to represent the different validation action options.
@@ -66,16 +66,15 @@ class MONGOCXX_API validation_criteria {
     };
 
     ///
-    /// Set a validation action to run when documents failing validation
-    /// are inserted or modified.
+    /// Sets a validation action to run when documents failing validation are inserted or modified.
     ///
     /// @param action
     ///   A validation action, either "error" or "warn."
     ///
-    void action(validation_action action);
+    validation_criteria& action(validation_action action);
 
     ///
-    /// Return a bson document representing this set of validation criteria.
+    /// Returns a bson document representing this set of validation criteria.
     ///
     /// @return Validation criteria, as a document.
     ///
