@@ -39,6 +39,14 @@ class MONGOCXX_API validation_criteria {
     validation_criteria& rule(bsoncxx::document::view_or_value rule);
 
     ///
+    /// Gets the validation rule for this validation object.
+    ///
+    /// @return
+    ///   Document representing a validation rule.
+    ///
+    const stdx::optional<bsoncxx::document::view_or_value>& rule() const;
+
+    ///
     /// A class to represent the different validation level options.
     ///
     enum class validation_level {
@@ -54,6 +62,14 @@ class MONGOCXX_API validation_criteria {
     ///   A validation level, "off," "strict," or "moderate."
     ///
     validation_criteria& level(validation_level level);
+
+    ///
+    /// Gets the validation level.
+    ///
+    /// @return
+    ///   A validation level, "off," "strict," or "moderate."
+    ///
+    const stdx::optional<validation_level>& level() const;
 
     ///
     /// A class to represent the different validation action options.
@@ -74,14 +90,29 @@ class MONGOCXX_API validation_criteria {
     validation_criteria& action(validation_action action);
 
     ///
+    /// Gets the validation action to run when documents failing validation are inserted or
+    /// modified.
+    ///
+    /// @return
+    ///   A validation action, either "error" or "warn."
+    ///
+    const stdx::optional<validation_action>& action() const;
+
+    ///
     /// Returns a bson document representing this set of validation criteria.
+    ///
+    /// @deprecated
+    ///   This method is deprecated. To determine which options are set on this object, use the
+    ///   provided accessors instead.
     ///
     /// @return Validation criteria, as a document.
     ///
     bsoncxx::document::value to_document() const;
 
     ///
-    /// @todo document this method
+    /// @deprecated
+    ///   This method is deprecated. To determine which options are set on this object, use the
+    ///   provided accessors instead.
     ///
     MONGOCXX_INLINE operator bsoncxx::document::value() const;
 
