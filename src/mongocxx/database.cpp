@@ -192,7 +192,7 @@ class collection database::create_collection(bsoncxx::string::view_or_value name
     }
 
     bson_error_t error;
-    libbson::scoped_bson_t opts_bson{options_builder.extract()};
+    libbson::scoped_bson_t opts_bson{options_builder.view()};
     auto result = libmongoc::database_create_collection(
         _get_impl().database_t, name.terminated().data(), opts_bson.bson(), &error);
     if (!result) {
@@ -216,7 +216,7 @@ class collection database::create_view(bsoncxx::string::view_or_value name,
         options_builder << "pipeline" << options.pipeline()->view_array();
     }
 
-    libbson::scoped_bson_t opts_bson{options_builder.extract()};
+    libbson::scoped_bson_t opts_bson{options_builder.view()};
     bson_error_t error;
     auto result = libmongoc::database_create_collection(
         _get_impl().database_t, name.terminated().data(), opts_bson.bson(), &error);

@@ -50,8 +50,14 @@ class MONGOCXX_API validation_criteria {
     /// A class to represent the different validation level options.
     ///
     enum class validation_level {
+        // Disable validation entirely.
         k_off,
+
+        // Apply validation rules to inserts, and apply validation rules to updates only if the
+        // document to be updated already fulfills the validation criteria.
         k_moderate,
+
+        // Apply validation rules to all inserts and updates.
         k_strict,
     };
 
@@ -59,7 +65,7 @@ class MONGOCXX_API validation_criteria {
     /// Sets a validation level.
     ///
     /// @param level
-    ///   A validation level, "off," "strict," or "moderate."
+    ///   An enumerated validation level.
     ///
     validation_criteria& level(validation_level level);
 
@@ -74,10 +80,12 @@ class MONGOCXX_API validation_criteria {
     ///
     /// A class to represent the different validation action options.
     ///
-    /// @todo document enum values
-    ///
     enum class validation_action {
+        // Reject any insertion or update that violates the validation criteria.
         k_error,
+
+        // Log any violations of the validation criteria, but allow the insertion or update to
+        // proceed.
         k_warn,
     };
 
@@ -85,7 +93,7 @@ class MONGOCXX_API validation_criteria {
     /// Sets a validation action to run when documents failing validation are inserted or modified.
     ///
     /// @param action
-    ///   A validation action, either "error" or "warn."
+    ///   An enumerated validation action.
     ///
     validation_criteria& action(validation_action action);
 
