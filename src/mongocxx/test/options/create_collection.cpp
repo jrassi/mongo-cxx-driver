@@ -51,7 +51,19 @@ TEST_CASE("create_collection accessors/mutators", "[create_collection]") {
     CHECK_OPTIONAL_ARGUMENT(cc, collation, collation.view());
     CHECK_OPTIONAL_ARGUMENT(cc, storage_engine, storage_engine.view());
     CHECK_OPTIONAL_ARGUMENT(cc, no_padding, true);
-    CHECK_OPTIONAL_ARGUMENT_WITHOUT_EQUALITY(cc, validation_criteria, validation);
+
+    // We verify the accessors/mutators of 'validation_criteria' manually here, since the
+    // validation_criteria class doesn't support equality (and therefore can't be used with
+    // CHECK_OPTIONAL_ARGUMENT()).
+    SECTION("has validation_criteria disengaged") {
+        REQUIRE(!cc.validation_criteria());
+    }
+    SECTION("has a method to set the validation_criteria") {
+        cc.validation_criteria(validation);
+        REQUIRE(cc.validation_criteria()->rule() == validation.rule());
+        REQUIRE(cc.validation_criteria()->level() == validation.level());
+        REQUIRE(cc.validation_criteria()->action() == validation.action());
+    }
 }
 
 TEST_CASE("create_collection can be exported to a document", "[create_collection]") {

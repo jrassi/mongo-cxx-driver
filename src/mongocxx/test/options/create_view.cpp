@@ -35,7 +35,16 @@ TEST_CASE("create_view accessors/mutators", "[create_view]") {
                                                  << "en_US" << builder::stream::finalize;
 
     CHECK_OPTIONAL_ARGUMENT(cv, collation, collation.view());
-    CHECK_OPTIONAL_ARGUMENT_WITHOUT_EQUALITY(cv, pipeline, std::move(pipeline{}.limit(1)));
+
+    // We verify the accessors/mutators of 'pipeline' manually here, since the pipeline class
+    // doesn't support equality (and therefore can't be used with CHECK_OPTIONAL_ARGUMENT()).
+    SECTION("has pipeline disengaged") {
+        REQUIRE(!cv.pipeline());
+    }
+    SECTION("has a method to set the pipeline") {
+        cv.pipeline(std::move(pipeline{}.limit(1)));
+        REQUIRE(cv.pipeline()->view_array() == pipeline{}.limit(1).view_array());
+    }
 }
 
 TEST_CASE("create_view can be exported to a document", "[create_view]") {
