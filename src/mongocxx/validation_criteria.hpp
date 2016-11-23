@@ -49,15 +49,14 @@ class MONGOCXX_API validation_criteria {
     ///
     /// A class to represent the different validation level options.
     ///
+    /// - k_off: Disable validation entirely.
+    /// - k_moderate: Apply validation rules to inserts, and apply validation rules to updates only
+    ///   if the document to be updated already fulfills the validation criteria.
+    /// - k_strict: Apply validation rules to all inserts and updates.
+    ///
     enum class validation_level {
-        // Disable validation entirely.
         k_off,
-
-        // Apply validation rules to inserts, and apply validation rules to updates only if the
-        // document to be updated already fulfills the validation criteria.
         k_moderate,
-
-        // Apply validation rules to all inserts and updates.
         k_strict,
     };
 
@@ -73,19 +72,19 @@ class MONGOCXX_API validation_criteria {
     /// Gets the validation level.
     ///
     /// @return
-    ///   A validation level, "off," "strict," or "moderate."
+    ///   The enumerated validation level.
     ///
     const stdx::optional<validation_level>& level() const;
 
     ///
     /// A class to represent the different validation action options.
     ///
+    /// - k_error: Reject any insertion or update that violates the validation criteria.
+    /// - k_warn: Log any violations of the validation criteria, but allow the insertion or update
+    ///   to proceed.
+    ///
     enum class validation_action {
-        // Reject any insertion or update that violates the validation criteria.
         k_error,
-
-        // Log any violations of the validation criteria, but allow the insertion or update to
-        // proceed.
         k_warn,
     };
 
@@ -102,7 +101,7 @@ class MONGOCXX_API validation_criteria {
     /// modified.
     ///
     /// @return
-    ///   A validation action, either "error" or "warn."
+    ///   The enumerated validation action.
     ///
     const stdx::optional<validation_action>& action() const;
 

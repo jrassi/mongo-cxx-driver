@@ -37,36 +37,6 @@ using bsoncxx::builder::stream::concatenate;
 using bsoncxx::builder::stream::document;
 using bsoncxx::builder::stream::finalize;
 
-namespace {
-
-// Convert validation levels to strings.
-std::string validation_level_to_string(mongocxx::validation_criteria::validation_level level) {
-    switch (level) {
-        case mongocxx::validation_criteria::validation_level::k_off:
-            return "off";
-        case mongocxx::validation_criteria::validation_level::k_moderate:
-            return "moderate";
-        case mongocxx::validation_criteria::validation_level::k_strict:
-            return "strict";
-    }
-
-    MONGOCXX_UNREACHABLE;
-}
-
-// Convert validation actions to strings.
-std::string validation_action_to_string(mongocxx::validation_criteria::validation_action action) {
-    switch (action) {
-        case mongocxx::validation_criteria::validation_action::k_warn:
-            return "warn";
-        case mongocxx::validation_criteria::validation_action::k_error:
-            return "error";
-    }
-
-    MONGOCXX_UNREACHABLE;
-}
-
-}  // namespace
-
 namespace mongocxx {
 MONGOCXX_INLINE_NAMESPACE_BEGIN
 
@@ -174,6 +144,28 @@ class collection database::create_collection(bsoncxx::string::view_or_value name
     }
 
     if (options.validation_criteria()) {
+        auto validation_level_to_string = [](validation_criteria::validation_level level) {
+            switch (level) {
+                case validation_criteria::validation_level::k_off:
+                    return "off";
+                case validation_criteria::validation_level::k_moderate:
+                    return "moderate";
+                case validation_criteria::validation_level::k_strict:
+                    return "strict";
+            }
+            MONGOCXX_UNREACHABLE;
+        };
+
+        auto validation_action_to_string = [](validation_criteria::validation_action action) {
+            switch (action) {
+                case validation_criteria::validation_action::k_warn:
+                    return "warn";
+                case validation_criteria::validation_action::k_error:
+                    return "error";
+            }
+            MONGOCXX_UNREACHABLE;
+        };
+
         auto validation_criteria = *options.validation_criteria();
 
         if (validation_criteria.rule()) {
