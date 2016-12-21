@@ -18,6 +18,7 @@ variables:
         ubuntu_s390x_source: &ubuntu_s390x_source http://downloads.10gen.com/linux/mongodb-linux-s390x-enterprise-ubuntu1604-latest.tgz
         ubuntu_ppc64le_source: &ubuntu_ppc64le_source http://downloads.10gen.com/linux/mongodb-linux-ppc64le-enterprise-ubuntu1604-latest.tgz
         ubuntu_arm64_source: &ubuntu_arm64_source http://downloads.10gen.com/linux/mongodb-linux-arm64-enterprise-ubuntu1604-latest.tgz
+        windows_source: &windows_source http://downloads.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-latest.zip
 
 
     ## Use newer compiler path variables
@@ -30,10 +31,27 @@ variables:
         linux_cmake_path: &linux_cmake_path /opt/cmake/bin/cmake
         ubuntu_zap_cmake_path: &ubuntu_zap_cmake_path /usr/bin/cmake
         osx_cmake_path: &osx_cmake_path /Applications/Cmake.app/Contents/bin/cmake
+        windows_cmake_path: &windows_cmake_path /cygdrive/c/cmake/bin/cmake
 
     ## tar options variables
     tar_options:
         linux_tar_options: &linux_tar_options --wildcards --no-anchored
+
+    compile_command:
+        unix_compile_command: &unix_compile_command make
+        windows_compile_command: &windows_compile_command "/cygdrive/c/Program Files (x86)/MSBuild/14.0/Bin/MSBuild.exe"
+
+    compile_all_target:
+        unix_compile_all_target: &unix_compile_all_target all
+        windows_compile_all_target: &windows_compile_all_target ALL_BUILD.vcxproj
+
+    compile_install_target:
+        unix_compile_install_target: &unix_compile_install_target install
+        windows_compile_install_target: &windows_compile_install_target INSTALL.vcxproj
+
+    compile_examples_target:
+        unix_compile_examples_target: &unix_compile_examples_target examples
+        windows_compile_examples_target: &windows_compile_examples_target examples/examples.vcxproj
 
     ## concurrency for make
     compile_concurrency:
@@ -44,6 +62,7 @@ variables:
     cdriver_configure_flags:
         linux_cdriver_configure_flags: &linux_cdriver_configure_flags --enable-ssl --enable-sasl --with-gnu-ld CFLAGS=-fno-omit-frame-pointer
         osx_cdriver_configure_flags: &osx_cdriver_configure_flags --enable-ssl --enable-sasl
+        # TODO windows
 
     ## cmake flag variables
     cmake_flags:
@@ -52,6 +71,7 @@ variables:
         osx_cmake_flags: &osx_cmake_flags -DCMAKE_CXX_FLAGS="-stdlib=libc++ -Wall -Wextra -Werror" -DBSONCXX_POLY_USE_BOOST=ON
         asan_cmake_flags: &asan_cmake_flags -DCMAKE_CXX_COMPILER="/usr/bin/clang++" -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -fsanitize=address -O1 -g -fno-omit-frame-pointer -Wall -Wextra -Werror"
         ubsan_cmake_flags: &ubsan_cmake_flags -DCMAKE_CXX_COMPILER="/usr/bin/clang++" -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -fsanitize=undefined -fsanitize-blacklist=$(pwd)/../etc/ubsan.blacklist -fno-sanitize-recover=undefined -O1 -g -fno-omit-frame-pointer -Wall -Wextra -Werror"
+        windows_cmake_flags: &windows_cmake_flags -G "Visual Studio 14 2015 Win64"
 
     ## test parameters
     test_params:
@@ -110,9 +130,8 @@ functions:
         params:
             working_dir: "mongo-cxx-driver"
             script: |
-                    export PREFIX=$(pwd)/../mongoc/
-                    sh ./.evergreen/install.sh libbson ${MONGOC_VERSION|master}
-                    sh ./.evergreen/install.sh mongoc ${MONGOC_VERSION|master}
+                    PREFIX="$(cygpath -w $(pwd)/../mongoc/)" sh ./.evergreen/install.sh libbson ${MONGOC_VERSION|master}
+                    PREFIX="$(cygpath -w $(pwd)/../mongoc/)" sh ./.evergreen/install.sh mongoc ${MONGOC_VERSION|master}
 
     "lint":
         - command: shell.exec
@@ -130,17 +149,18 @@ functions:
               script: |
                   set -o errexit
                   set -o xtrace
-                  export PREFIX=$(pwd)/../../mongoc/
+                  # XXX make these cmake defines instead?
                   if [ "${cxx_path|default}" != "default" ]; then
                         export CXX="${cxx_path}"
                   fi
                   if [ "${cc_path|default}" != "default" ]; then
                         export CC="${cc_path}"
                   fi
-                  PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig" ${cmake_path} ${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=./install -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" ..
-                  make ${compile_concurrency} all
-                  make install
-                  make ${compile_concurrency} examples
+                  #PKG_CONFIG_PATH="$(pwd)/../../mongoc/lib/pkgconfig" ${cmake_path} ${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=./install -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" ..
+                  PKG_CONFIG_PATH="$(pwd)/../../mongoc/lib/pkgconfig" ${cmake_path} ${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=.\\install -DBOOST_ROOT="c:\local\boost_1_60_0" -DLIBBSON_DIR="$(cygpath -w $(readlink -f $(pwd)\\..\\..\\mongoc))" -DLIBMONGOC_DIR="$(cygpath -w $(readlink -f $(pwd)\\..\\..\\mongoc))" ..
+                  "${compile_command}" "${compile_concurrency}" "${compile_all_target}"
+                  "${compile_command}" "${compile_install_target}"
+                  "${compile_command}" "${compile_concurrency}" "${compile_examples_target}"
     "test":
         - command: shell.exec
           params:
@@ -172,7 +192,6 @@ pre:
         rm -fr mongod
   - func: "fetch_source"
   - func: "getdata"
-  - func: "start_mongod"
 
 post:
   - func: "stop_mongod"
@@ -185,8 +204,16 @@ tasks:
       commands:
         - func: "lint"
 
+    - name: compile_with_mongoc_current
+      commands:
+        - func: "install_c_driver"
+          vars:
+              MONGOC_VERSION: 1.5.0
+        - func: "compile"
+
     - name: compile_and_test_with_mongoc_current
       commands:
+        - func: "start_mongod"
         - func: "install_c_driver"
           vars:
               MONGOC_VERSION: 1.5.0
@@ -195,6 +222,7 @@ tasks:
 
     - name: compile_and_test_with_mongoc_master
       commands:
+        - func: "start_mongod"
         - func: "install_c_driver"
           vars:
               MONGOC_VERSION: master
@@ -216,6 +244,10 @@ buildvariants:
           build_type: "Release"
           source: *linux_64_source
           tar_options: *linux_tar_options
+          compile_command: *unix_compile_command
+          compile_all_target: *unix_compile_all_target
+          compile_install_target: *unix_compile_install_target
+          compile_examples_target: *unix_compile_examples_target
           compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
@@ -233,6 +265,10 @@ buildvariants:
           build_type: "Debug"
           source: *linux_64_source
           tar_options: *linux_tar_options
+          compile_command: *unix_compile_command
+          compile_all_target: *unix_compile_all_target
+          compile_install_target: *unix_compile_install_target
+          compile_examples_target: *unix_compile_examples_target
           compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
@@ -249,6 +285,10 @@ buildvariants:
           build_type: "Debug"
           source: *rhel55_source
           tar_options: *linux_tar_options
+          compile_command: *unix_compile_command
+          compile_all_target: *unix_compile_all_target
+          compile_install_target: *unix_compile_install_target
+          compile_examples_target: *unix_compile_examples_target
           compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
@@ -266,6 +306,10 @@ buildvariants:
       expansions:
           build_type: "Release"
           source: *osx_source
+          compile_command: *unix_compile_command
+          compile_all_target: *unix_compile_all_target
+          compile_install_target: *unix_compile_install_target
+          compile_examples_target: *unix_compile_examples_target
           compile_concurrency: *osx_compile_concurrency
           cdriver_configure_flags: *osx_cdriver_configure_flags
           cmake_path: *osx_cmake_path
@@ -282,6 +326,10 @@ buildvariants:
           build_type: "Debug"
           source: *linux_64_source
           tar_options: *linux_tar_options
+          compile_command: *unix_compile_command
+          compile_all_target: *unix_compile_all_target
+          compile_install_target: *unix_compile_install_target
+          compile_examples_target: *unix_compile_examples_target
           compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
@@ -299,6 +347,10 @@ buildvariants:
           build_type: "Debug"
           source: *linux_64_source
           tar_options: *linux_tar_options
+          compile_command: *unix_compile_command
+          compile_all_target: *unix_compile_all_target
+          compile_install_target: *unix_compile_install_target
+          compile_examples_target: *unix_compile_examples_target
           compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
@@ -316,6 +368,10 @@ buildvariants:
           build_type: "Debug"
           source: *linux_64_source
           tar_options: *linux_tar_options
+          compile_command: *unix_compile_command
+          compile_all_target: *unix_compile_all_target
+          compile_install_target: *unix_compile_install_target
+          compile_examples_target: *unix_compile_examples_target
           compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
@@ -334,6 +390,10 @@ buildvariants:
           build_type: "Release"
           source: *ubuntu_s390x_source
           tar_options: *linux_tar_options
+          compile_command: *unix_compile_command
+          compile_all_target: *unix_compile_all_target
+          compile_install_target: *unix_compile_install_target
+          compile_examples_target: *unix_compile_examples_target
           compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *ubuntu_zap_cmake_path
@@ -350,6 +410,10 @@ buildvariants:
           build_type: "Release"
           source: *ubuntu_ppc64le_source
           tar_options: *linux_tar_options
+          compile_command: *unix_compile_command
+          compile_all_target: *unix_compile_all_target
+          compile_install_target: *unix_compile_install_target
+          compile_examples_target: *unix_compile_examples_target
           compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *ubuntu_zap_cmake_path
@@ -366,6 +430,10 @@ buildvariants:
           build_type: "Release"
           source: *ubuntu_arm64_source
           tar_options: *linux_tar_options
+          compile_command: *unix_compile_command
+          compile_all_target: *unix_compile_all_target
+          compile_install_target: *unix_compile_install_target
+          compile_examples_target: *unix_compile_examples_target
           compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *ubuntu_zap_cmake_path
@@ -374,4 +442,23 @@ buildvariants:
       tasks:
           - name: compile_and_test_with_mongoc_current
           - name: compile_and_test_with_mongoc_master
+
+    - name: windows-2k8-debug
+      display_name: "Windows 2008R2 Debug"
+      batchtime: 1440 # 1 day
+      expansions:
+          build_type: "Debug"
+          source: *windows_source
+          tar_options: *linux_tar_options
+          compile_command: *windows_compile_command
+          compile_all_target: *windows_compile_all_target
+          compile_install_target: *windows_compile_install_target
+          compile_examples_target: *windows_compile_examples_target
+          #cdriver_configure_flags: *xxx
+          cmake_path: *windows_cmake_path
+          cmake_flags: *windows_cmake_flags
+      run_on:
+          - windows-64-vs2015-compile
+      tasks:
+          - name: compile_with_mongoc_current
 

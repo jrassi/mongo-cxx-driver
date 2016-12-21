@@ -55,19 +55,26 @@ else
 	tar --extract --file $LIB.tgz
 fi
 
+cd $DIR
+
 case "$OS" in
 	darwin)
 		MAKEFLAGS="-j"$(sysctl -n hw.logicalcpu)
+		PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig" ./configure $CONFIGURE_ARGS --prefix="$PREFIX"
+		make
+		make install
 		;;
 
 	linux)
 		MAKEFLAGS="-j"$(grep -c ^processor /proc/cpuinfo)
+		PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig" ./configure $CONFIGURE_ARGS --prefix="$PREFIX"
+		make
+		make install
+		;;
+
+	cygwin*)
+		/cygdrive/c/cmake/bin/cmake -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX="$PREFIX"
+		# TODO: translate and use configure args.
+		"/cygdrive/c/Program Files (x86)/MSBuild/14.0/Bin/MSBuild.exe" /m INSTALL.vcxproj
 		;;
 esac
-
-cd $DIR
-
-PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig" ./configure $CONFIGURE_ARGS --prefix="$PREFIX"
-make
-make install
-
