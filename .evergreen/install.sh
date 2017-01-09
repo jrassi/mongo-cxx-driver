@@ -16,12 +16,12 @@ usage() {
 [ $# -lt 1 ] && { usage; exit 2; }
 
 VERSION=${2:-master}
-PREFIX=${PREFIX:-deps-install}
+PREFIX=${PREFIX:-../deps-install}
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 
 UNIX_CONFIGURE_ARGS_MONGOC="--disable-automatic-init-and-cleanup --disable-shm-counters --with-libbson=system"
 UNIX_CONFIGURE_ARGS_BSON="--disable-extra-align"
-UNIX_CONFIGURE_ARGS_EXTRA="--enable-tests=no --enable-examples=no --enable-debug --enable-optimizations --disable-static --disable-dependency-tracking --with-pic --prefix=\"$PREFIX\""
+UNIX_CONFIGURE_ARGS_EXTRA="--enable-tests=no --enable-examples=no --enable-debug --enable-optimizations --disable-static --disable-dependency-tracking --with-pic --prefix=$PREFIX"
 
 WINDOWS_CONFIGURE_ARGS_MONGOC=
 WINDOWS_CONFIGURE_ARGS_BSON=
@@ -79,14 +79,14 @@ cd $DIR
 case "$OS" in
 	darwin)
 		MAKEFLAGS="-j"$(sysctl -n hw.logicalcpu)
-		PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig" ./configure $CONFIGURE_ARGS --prefix="$PREFIX"
+		PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig" ./configure $CONFIGURE_ARGS
 		make
 		make install
 		;;
 
 	linux)
 		MAKEFLAGS="-j"$(grep -c ^processor /proc/cpuinfo)
-		PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig" ./configure $CONFIGURE_ARGS --prefix="$PREFIX"
+		PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig" ./configure $CONFIGURE_ARGS
 		make
 		make install
 		;;
