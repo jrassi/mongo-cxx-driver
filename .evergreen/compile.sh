@@ -1,14 +1,14 @@
 #!/bin/sh
 
-# TODO explain where this should be run from
-# PATH_TO_CMAKE
-# PATH_TO_BUILD_TOOL
-
-# CMAKE_FLAGS
+# Runs cmake and compiles the standard build targets (all, install, examples).
+#
+# This following environment variables will change the behavior of this script:
+# - PATH_TO_CMAKE: full path to cmake (defaults to searching $PATH)
+# - PATH_TO_BUILD_TOOL: full path to make / msbuild.exe (defaults to searching $PATH)
+# - CMAKE_FLAGS: additional flags to pass to cmake
 
 set -o xtrace
 set -o errexit
-#set -o nounset
 
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 

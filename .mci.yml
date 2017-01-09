@@ -45,7 +45,6 @@ variables:
     cdriver_configure_flags:
         linux_cdriver_configure_flags: &linux_cdriver_configure_flags --enable-ssl --enable-sasl --with-gnu-ld CFLAGS=-fno-omit-frame-pointer
         osx_cdriver_configure_flags: &osx_cdriver_configure_flags --enable-ssl --enable-sasl
-        # TODO windows
 
     ## cmake flag variables
     cmake_flags:
@@ -138,7 +137,11 @@ functions:
                   if [ "${cc_path|default}" != "default" ]; then
                         export CC="${cc_path}"
                   fi
-                  PKG_CONFIG_PATH="deps-install/lib/pkgconfig" PATH_TO_CMAKE="${cmake_path}" PATH_TO_BUILD_TOOL="${build_tool_path}" CMAKE_FLAGS="${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=install" sh ../.evergreen/compile.sh
+                  export PATH_TO_CMAKE="${cmake_path}"
+                  export PATH_TO_BUILD_TOOL="${build_tool_path}"
+                  export PKG_CONFIG_PATH="deps-install/lib/pkgconfig"
+                  export CMAKE_FLAGS="${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=install"
+                  sh ../.evergreen/compile.sh
     "test":
         - command: shell.exec
           params:
@@ -389,11 +392,9 @@ buildvariants:
           source: *windows_source
           tar_options: *linux_tar_options
           build_tool_path: *windows_build_tool_path
-          #cdriver_configure_flags: *xxx
           cmake_path: *windows_cmake_path
           cmake_flags: *windows_cmake_flags
       run_on:
           - windows-64-vs2015-compile
       tasks:
           - name: compile_with_mongoc_current
-
