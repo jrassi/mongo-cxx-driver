@@ -130,8 +130,8 @@ functions:
         params:
             working_dir: "mongo-cxx-driver"
             script: |
-                    PREFIX="$(cygpath -w $(pwd)/../mongoc/)" sh ./.evergreen/install.sh libbson ${MONGOC_VERSION|master}
-                    PREFIX="$(cygpath -w $(pwd)/../mongoc/)" sh ./.evergreen/install.sh mongoc ${MONGOC_VERSION|master}
+                    sh ./.evergreen/install.sh libbson ${MONGOC_VERSION|master}
+                    sh ./.evergreen/install.sh mongoc ${MONGOC_VERSION|master}
 
     "lint":
         - command: shell.exec
@@ -149,15 +149,14 @@ functions:
               script: |
                   set -o errexit
                   set -o xtrace
-                  # XXX make these cmake defines instead?
                   if [ "${cxx_path|default}" != "default" ]; then
                         export CXX="${cxx_path}"
                   fi
                   if [ "${cc_path|default}" != "default" ]; then
                         export CC="${cc_path}"
                   fi
-                  #PKG_CONFIG_PATH="$(pwd)/../../mongoc/lib/pkgconfig" ${cmake_path} ${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=./install -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" ..
-                  PKG_CONFIG_PATH="$(pwd)/../../mongoc/lib/pkgconfig" ${cmake_path} ${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=.\\install -DBOOST_ROOT="c:\local\boost_1_60_0" -DLIBBSON_DIR="$(cygpath -w $(readlink -f $(pwd)\\..\\..\\mongoc))" -DLIBMONGOC_DIR="$(cygpath -w $(readlink -f $(pwd)\\..\\..\\mongoc))" ..
+                  #PKG_CONFIG_PATH="deps-install/lib/pkgconfig" ${cmake_path} ${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=./install -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" ..
+                  PKG_CONFIG_PATH="deps-install/lib/pkgconfig" ${cmake_path} ${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=./install -DBOOST_ROOT="c:\local\boost_1_60_0" -DLIBBSON_DIR=deps-install -DLIBMONGOC_DIR=deps-install ..
                   "${compile_command}" "${compile_concurrency}" "${compile_all_target}"
                   "${compile_command}" "${compile_install_target}"
                   "${compile_command}" "${compile_concurrency}" "${compile_examples_target}"
