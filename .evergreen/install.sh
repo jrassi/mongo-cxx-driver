@@ -16,7 +16,7 @@ usage() {
 [ $# -lt 1 ] && { usage; exit 2; }
 
 VERSION=${2:-master}
-PREFIX=${PREFIX:-$(pwd)"/deps-install"}
+PREFIX=${PREFIX:-deps-install}
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 
 UNIX_CONFIGURE_ARGS_MONGOC="--disable-automatic-init-and-cleanup --disable-shm-counters --with-libbson=system"
