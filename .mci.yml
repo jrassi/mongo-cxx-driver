@@ -155,7 +155,7 @@ functions:
                   if [ "${cc_path|default}" != "default" ]; then
                         export CC="${cc_path}"
                   fi
-                  PKG_CONFIG_PATH="deps-install/lib/pkgconfig" PATH_TO_CMAKE="${cmake_path}" PATH_TO_BUILD_TOOL="${build_tool_path}" CMAKE_FLAGS="${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=install" sh .evergreen/compile.sh ${cmake_flags}
+                  PKG_CONFIG_PATH="deps-install/lib/pkgconfig" PATH_TO_CMAKE="${cmake_path}" PATH_TO_BUILD_TOOL="${build_tool_path}" CMAKE_FLAGS="${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=install" sh ../.evergreen/compile.sh ${cmake_flags}
     "test":
         - command: shell.exec
           params:
