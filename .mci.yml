@@ -41,23 +41,6 @@ variables:
         unix_build_tool_path: &unix_build_tool_path make
         windows_build_tool_path: &windows_build_tool_path "/cygdrive/c/Program Files (x86)/MSBuild/14.0/Bin/MSBuild.exe"
 
-    compile_all_target:
-        unix_compile_all_target: &unix_compile_all_target all
-        windows_compile_all_target: &windows_compile_all_target ALL_BUILD.vcxproj
-
-    compile_install_target:
-        unix_compile_install_target: &unix_compile_install_target install
-        windows_compile_install_target: &windows_compile_install_target INSTALL.vcxproj
-
-    compile_examples_target:
-        unix_compile_examples_target: &unix_compile_examples_target examples
-        windows_compile_examples_target: &windows_compile_examples_target examples/examples.vcxproj
-
-    ## concurrency for make
-    compile_concurrency:
-        linux_compile_concurrency: &linux_compile_concurrency -j$(grep -c ^processor /proc/cpuinfo)
-        osx_compile_concurrency: &osx_compile_concurrency -j$(sysctl -n hw.logicalcpu)
-
     ## cdriver configure flags
     cdriver_configure_flags:
         linux_cdriver_configure_flags: &linux_cdriver_configure_flags --enable-ssl --enable-sasl --with-gnu-ld CFLAGS=-fno-omit-frame-pointer
@@ -240,10 +223,6 @@ buildvariants:
           source: *linux_64_source
           tar_options: *linux_tar_options
           build_tool_path: *unix_build_tool_path
-          compile_all_target: *unix_compile_all_target
-          compile_install_target: *unix_compile_install_target
-          compile_examples_target: *unix_compile_examples_target
-          compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
           cmake_flags: *linux_cmake_flags
@@ -261,10 +240,6 @@ buildvariants:
           source: *linux_64_source
           tar_options: *linux_tar_options
           build_tool_path: *unix_build_tool_path
-          compile_all_target: *unix_compile_all_target
-          compile_install_target: *unix_compile_install_target
-          compile_examples_target: *unix_compile_examples_target
-          compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
           cmake_flags: *linux_cmake_flags
@@ -281,10 +256,6 @@ buildvariants:
           source: *rhel55_source
           tar_options: *linux_tar_options
           build_tool_path: *unix_build_tool_path
-          compile_all_target: *unix_compile_all_target
-          compile_install_target: *unix_compile_install_target
-          compile_examples_target: *unix_compile_examples_target
-          compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
           cmake_flags: *rhel55_cmake_flags
@@ -302,10 +273,6 @@ buildvariants:
           build_type: "Release"
           source: *osx_source
           build_tool_path: *unix_build_tool_path
-          compile_all_target: *unix_compile_all_target
-          compile_install_target: *unix_compile_install_target
-          compile_examples_target: *unix_compile_examples_target
-          compile_concurrency: *osx_compile_concurrency
           cdriver_configure_flags: *osx_cdriver_configure_flags
           cmake_path: *osx_cmake_path
           cmake_flags: *osx_cmake_flags
@@ -322,10 +289,6 @@ buildvariants:
           source: *linux_64_source
           tar_options: *linux_tar_options
           build_tool_path: *unix_build_tool_path
-          compile_all_target: *unix_compile_all_target
-          compile_install_target: *unix_compile_install_target
-          compile_examples_target: *unix_compile_examples_target
-          compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
           cmake_flags: *linux_cmake_flags
@@ -343,10 +306,6 @@ buildvariants:
           source: *linux_64_source
           tar_options: *linux_tar_options
           build_tool_path: *unix_build_tool_path
-          compile_all_target: *unix_compile_all_target
-          compile_install_target: *unix_compile_install_target
-          compile_examples_target: *unix_compile_examples_target
-          compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
           cmake_flags: *asan_cmake_flags
@@ -364,10 +323,6 @@ buildvariants:
           source: *linux_64_source
           tar_options: *linux_tar_options
           build_tool_path: *unix_build_tool_path
-          compile_all_target: *unix_compile_all_target
-          compile_install_target: *unix_compile_install_target
-          compile_examples_target: *unix_compile_examples_target
-          compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *linux_cmake_path
           cmake_flags: *ubsan_cmake_flags
@@ -386,10 +341,6 @@ buildvariants:
           source: *ubuntu_s390x_source
           tar_options: *linux_tar_options
           build_tool_path: *unix_build_tool_path
-          compile_all_target: *unix_compile_all_target
-          compile_install_target: *unix_compile_install_target
-          compile_examples_target: *unix_compile_examples_target
-          compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *ubuntu_zap_cmake_path
       run_on:
@@ -406,10 +357,6 @@ buildvariants:
           source: *ubuntu_ppc64le_source
           tar_options: *linux_tar_options
           build_tool_path: *unix_build_tool_path
-          compile_all_target: *unix_compile_all_target
-          compile_install_target: *unix_compile_install_target
-          compile_examples_target: *unix_compile_examples_target
-          compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *ubuntu_zap_cmake_path
       run_on:
@@ -426,10 +373,6 @@ buildvariants:
           source: *ubuntu_arm64_source
           tar_options: *linux_tar_options
           build_tool_path: *unix_build_tool_path
-          compile_all_target: *unix_compile_all_target
-          compile_install_target: *unix_compile_install_target
-          compile_examples_target: *unix_compile_examples_target
-          compile_concurrency: *linux_compile_concurrency
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *ubuntu_zap_cmake_path
       run_on:
@@ -446,9 +389,6 @@ buildvariants:
           source: *windows_source
           tar_options: *linux_tar_options
           build_tool_path: *windows_build_tool_path
-          compile_all_target: *windows_compile_all_target
-          compile_install_target: *windows_compile_install_target
-          compile_examples_target: *windows_compile_examples_target
           #cdriver_configure_flags: *xxx
           cmake_path: *windows_cmake_path
           cmake_flags: *windows_cmake_flags
