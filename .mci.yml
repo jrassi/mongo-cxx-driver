@@ -71,7 +71,7 @@ variables:
         osx_cmake_flags: &osx_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_FLAGS="-stdlib=libc++ -Wall -Wextra -Werror" -DBSONCXX_POLY_USE_BOOST=ON
         asan_cmake_flags: &asan_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_COMPILER="/usr/bin/clang++" -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -fsanitize=address -O1 -g -fno-omit-frame-pointer -Wall -Wextra -Werror"
         ubsan_cmake_flags: &ubsan_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_COMPILER="/usr/bin/clang++" -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -fsanitize=undefined -fsanitize-blacklist=$(pwd)/../etc/ubsan.blacklist -fno-sanitize-recover=undefined -O1 -g -fno-omit-frame-pointer -Wall -Wextra -Werror"
-        windows_cmake_flags: &windows_cmake_flags -G "Visual Studio 14 2015 Win64" -DBOOST_ROOT="c:\local\boost_1_60_0" -DLIBBSON_DIR=deps-install -DLIBMONGOC_DIR=deps-install
+        windows_cmake_flags: &windows_cmake_flags -DBOOST_ROOT="c:\local\boost_1_60_0" -DLIBBSON_DIR=deps-install -DLIBMONGOC_DIR=deps-install
 
     ## test parameters
     test_params:
@@ -155,7 +155,7 @@ functions:
                   if [ "${cc_path|default}" != "default" ]; then
                         export CC="${cc_path}"
                   fi
-                  PKG_CONFIG_PATH="deps-install/lib/pkgconfig" PATH_TO_CMAKE="${cmake_path}" PATH_TO_BUILD_TOOL="${build_tool_path}" CMAKE_FLAGS="${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=install" sh ../.evergreen/compile.sh ${cmake_flags}
+                  PKG_CONFIG_PATH="deps-install/lib/pkgconfig" PATH_TO_CMAKE="${cmake_path}" PATH_TO_BUILD_TOOL="${build_tool_path}" CMAKE_FLAGS="${cmake_flags} -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_INSTALL_PREFIX=install" sh ../.evergreen/compile.sh
     "test":
         - command: shell.exec
           params:

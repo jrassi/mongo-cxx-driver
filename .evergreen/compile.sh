@@ -13,10 +13,10 @@ set -o errexit
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 
 PATH_TO_CMAKE="${PATH_TO_CMAKE:-cmake}"
-"$PATH_TO_CMAKE" $CMAKE_FLAGS ..
 
 case "$OS" in
 	darwin|linux)
+        "$PATH_TO_CMAKE" $CMAKE_FLAGS ..
         if [ -f /proc/cpuinfo ]; then
             CONCURRENCY=$(grep -c ^processor /proc/cpuinfo)
         elif which sysctl; then
@@ -31,6 +31,7 @@ case "$OS" in
         "$PATH_TO_BUILD_TOOL" "-j$CONCURRENCY" examples
         ;;
     cygwin*)
+        "$PATH_TO_CMAKE" -G "Visual Studio 14 2015 Win64" $CMAKE_FLAGS ..
         PATH_TO_BUILD_TOOL="${PATH_TO_BUILD_TOOL:-msbuild.exe}"
         "$PATH_TO_BUILD_TOOL" /m ALL_BUILD.vcxproj
         "$PATH_TO_BUILD_TOOL" INSTALL.vcxproj
