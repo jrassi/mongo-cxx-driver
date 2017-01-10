@@ -16,28 +16,20 @@ usage() {
 [ $# -lt 1 ] && { usage; exit 2; }
 
 VERSION=${2:-master}
-PREFIX=${PREFIX:-../deps-install}
+PREFIX=${PREFIX:-$(pwd)../deps-install}
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-
-UNIX_CONFIGURE_ARGS_MONGOC="--disable-automatic-init-and-cleanup --disable-shm-counters --with-libbson=system"
-UNIX_CONFIGURE_ARGS_BSON="--disable-extra-align"
-UNIX_CONFIGURE_ARGS_EXTRA="--enable-tests=no --enable-examples=no --enable-debug --enable-optimizations --disable-static --disable-dependency-tracking --with-pic --prefix=$PREFIX"
-
-WINDOWS_CONFIGURE_ARGS_MONGOC=
-WINDOWS_CONFIGURE_ARGS_BSON=
-WINDOWS_CONFIGURE_ARGS_EXTRA="-DCMAKE_INSTALL_PREFIX=$PREFIX"
 
 case "$OS" in
 	darwin|linux)
-        CONFIGURE_ARGS_MONGOC="$UNIX_CONFIGURE_ARGS_MONGOC"
-        CONFIGURE_ARGS_BSON="$UNIX_CONFIGURE_ARGS_BSON"
-        CONFIGURE_ARGS_EXTRA="$UNIX_CONFIGURE_ARGS_EXTRA"
+        CONFIGURE_ARGS_MONGOC="--disable-automatic-init-and-cleanup --disable-shm-counters --with-libbson=system"
+        CONFIGURE_ARGS_BSON="--disable-extra-align"
+        CONFIGURE_ARGS_EXTRA="--enable-tests=no --enable-examples=no --enable-debug --enable-optimizations --disable-static --disable-dependency-tracking --with-pic --prefix=$PREFIX"
 		;;
 
     cygwin*)
-        CONFIGURE_ARGS_MONGOC="$WINDOWS_CONFIGURE_ARGS_MONGOC"
-        CONFIGURE_ARGS_BSON="$WINDOWS_CONFIGURE_ARGS_BSON"
-        CONFIGURE_ARGS_EXTRA="$WINDOWS_CONFIGURE_ARGS_EXTRA"
+        CONFIGURE_ARGS_MONGOC=
+        CONFIGURE_ARGS_BSON=
+        CONFIGURE_ARGS_EXTRA="-DCMAKE_INSTALL_PREFIX=$(cygpath -m "$PREFIX")"
         ;;
 esac
 
