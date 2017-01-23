@@ -158,9 +158,13 @@ functions:
                   export PATH=$PREFIX/bin:$(pwd)/install/bin:$PATH
                   export LD_LIBRARY_PATH=.:$PREFIX/lib/
                   export DYLD_LIBRARY_PATH=.:$PREFIX/lib/
+                  export CRUD_TESTS_PATH="$(pwd)/../data/crud"
+                  if [ "Windows_NT" == "$OS" ]; then
+                      CRUD_TESTS_PATH=$(cygpath -m $CRUD_TESTS_PATH)
+                  fi
                   ${test_params} ./src/bsoncxx/test/test_bson
                   ${test_params} ./src/mongocxx/test/test_driver
-                  CRUD_TESTS_PATH="$(pwd)/../data/crud" ${test_params} ./src/mongocxx/test/test_specs
+                  ${test_params} ./src/mongocxx/test/test_specs
                   ${test_params} ./src/mongocxx/test/test_instance
 
                   # The break -1 is a hack to cause us to have a bad
