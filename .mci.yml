@@ -154,7 +154,8 @@ functions:
                   set -o errexit
                   set -o xtrace
                   cd build
-                  export PREFIX=$(pwd)/../../mongoc/
+                  export PREFIX=$(pwd)/../../mongoc
+                  export PATH=$PREFIX/bin:$(pwd)/install/bin:$PATH
                   export LD_LIBRARY_PATH=.:$PREFIX/lib/
                   export DYLD_LIBRARY_PATH=.:$PREFIX/lib/
                   ${test_params} ./src/bsoncxx/test/test_bson
@@ -190,14 +191,6 @@ tasks:
     - name: lint
       commands:
         - func: "lint"
-
-    - name: compile_with_mongoc_current
-      commands:
-        - func: "start_mongod"
-        - func: "install_c_driver"
-          vars:
-              MONGOC_VERSION: 1.5.0
-        - func: "compile"
 
     - name: compile_and_test_with_mongoc_current
       commands:
@@ -405,4 +398,5 @@ buildvariants:
       run_on:
           - windows-64-vs2015-compile
       tasks:
-          - name: compile_with_mongoc_current
+          - name: compile_and_test_with_mongoc_current
+          - name: compile_and_test_with_mongoc_master
