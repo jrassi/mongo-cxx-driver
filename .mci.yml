@@ -161,16 +161,20 @@ functions:
                   export CRUD_TESTS_PATH="$(pwd)/../data/crud"
                   if [ "Windows_NT" == "$OS" ]; then
                       CRUD_TESTS_PATH=$(cygpath -m $CRUD_TESTS_PATH)
-                  fi
-                  ${test_params} ./src/bsoncxx/test/test_bson
-                  ${test_params} ./src/mongocxx/test/test_driver
-                  ${test_params} ./src/mongocxx/test/test_specs
-                  ${test_params} ./src/mongocxx/test/test_instance
+                      "${build_tool_path}" RUN_TESTS.vcxproj
+                      "${build_tool_path}" examples/run-examples.vcxproj
+                  else
+                      ${test_params} ./src/bsoncxx/test/test_bson
+                      ${test_params} ./src/mongocxx/test/test_driver
+                      ${test_params} ./src/mongocxx/test/test_specs
+                      ${test_params} ./src/mongocxx/test/test_instance
 
-                  # The break -1 is a hack to cause us to have a bad
-                  # exit status if any test exits with a bad exit
-                  # status.
-                  for test in $(find examples -type f -perm /u+x | sort) ; do ${test_params} $test || break -1 ; done
+                      # The break -1 is a hack to cause us to have a bad
+                      # exit status if any test exits with a bad exit
+                      # status.
+                      for test in $(find examples -type f -perm /u+x | sort) ; do ${test_params} $test || break -1 ; done
+                  fi
+
 #######################################
 #              Pre Task               #
 #######################################
