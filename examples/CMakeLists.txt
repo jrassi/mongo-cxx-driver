@@ -35,6 +35,10 @@ add_custom_target(run-examples DEPENDS examples)
 
 # Run all mongocxx examples on `make run-examples`.
 foreach(EXAMPLE ${MONGOCXX_EXAMPLE_EXECUTABLES})
+    if ((${EXAMPLE} STREQUAL "exception") AND (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
+        continue()
+    endif()
+
     get_filename_component(EXAMPLE_EXECUTABLE "${CMAKE_BINARY_DIR}/examples/mongocxx/${CMAKE_CFG_INTDIR}/${EXAMPLE}" ABSOLUTE)
     add_custom_command(TARGET run-examples POST_BUILD COMMAND ${EXAMPLE_EXECUTABLE})
 endforeach(EXAMPLE)
