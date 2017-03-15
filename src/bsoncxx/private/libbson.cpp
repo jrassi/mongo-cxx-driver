@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <mongocxx/private/libbson.hh>
+#include <bsoncxx/private/libbson.hh>
 
-#include <mongocxx/config/private/prelude.hh>
+#include <bsoncxx/config/private/prelude.hh>
 
-namespace mongocxx {
-MONGOCXX_INLINE_NAMESPACE_BEGIN
+namespace bsoncxx {
+BSONCXX_INLINE_NAMESPACE_BEGIN
 namespace libbson {
 
 namespace {
@@ -110,5 +110,5 @@ bsoncxx::document::value scoped_bson_t::steal() {
 }
 
 }  // namespace libbson
-MONGOCXX_INLINE_NAMESPACE_END
-}  // namespace mongocxx
+BSONCXX_INLINE_NAMESPACE_END
+}  // namespace bsoncxx

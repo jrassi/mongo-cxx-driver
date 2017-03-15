@@ -20,7 +20,7 @@
 #include <mongocxx/collection.hpp>
 #include <mongocxx/database.hpp>
 #include <mongocxx/private/database.hh>
-#include <mongocxx/private/libbson.hh>
+#include <bsoncxx/private/libbson.hh>
 #include <mongocxx/private/read_preference.hh>
 #include <mongocxx/private/write_concern.hh>
 

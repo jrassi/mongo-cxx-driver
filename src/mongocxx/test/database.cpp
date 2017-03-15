@@ -22,7 +22,7 @@
 #include <mongocxx/exception/operation_exception.hpp>
 #include <mongocxx/instance.hpp>
 #include <mongocxx/options/modify_collection.hpp>
-#include <mongocxx/private/libbson.hh>
+#include <bsoncxx/private/libbson.hh>
 #include <mongocxx/private/libmongoc.hh>
 #include <mongocxx/test_util/client_helpers.hh>
 #include <mongocxx/validation_criteria.hpp>
@@ -263,7 +263,7 @@ TEST_CASE("A database", "[database]") {
 
         bsoncxx::document::value doc = bsoncxx::builder::stream::document{}
                                        << "foo" << 5 << bsoncxx::builder::stream::finalize;
-        libbson::scoped_bson_t bson_doc{doc.view()};
+        bsoncxx::libbson::scoped_bson_t bson_doc{doc.view()};
 
         database_command_simple->interpose([&](mongoc_database_t*,
                                                const bson_t*,

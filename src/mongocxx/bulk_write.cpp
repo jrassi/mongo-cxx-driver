@@ -19,7 +19,7 @@
 #include <mongocxx/exception/logic_error.hpp>
 #include <mongocxx/exception/private/mongoc_error.hh>
 #include <mongocxx/private/bulk_write.hh>
-#include <mongocxx/private/libbson.hh>
+#include <bsoncxx/private/libbson.hh>
 #include <mongocxx/private/libmongoc.hh>
 #include <mongocxx/private/write_concern.hh>
 
@@ -28,7 +28,7 @@
 namespace mongocxx {
 MONGOCXX_INLINE_NAMESPACE_BEGIN
 
-using namespace libbson;
+using namespace bsoncxx::libbson;
 
 bulk_write::bulk_write(bulk_write&&) noexcept = default;
 bulk_write& bulk_write::operator=(bulk_write&&) noexcept = default;

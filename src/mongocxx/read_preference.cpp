@@ -17,7 +17,7 @@
 #include <bsoncxx/stdx/make_unique.hpp>
 #include <mongocxx/exception/error_code.hpp>
 #include <mongocxx/exception/logic_error.hpp>
-#include <mongocxx/private/libbson.hh>
+#include <bsoncxx/private/libbson.hh>
 #include <mongocxx/private/libmongoc.hh>
 #include <mongocxx/private/read_preference.hh>
 
@@ -64,7 +64,7 @@ read_preference& read_preference::mode(read_mode mode) {
 }
 
 read_preference& read_preference::tags(bsoncxx::document::view_or_value tags) {
-    libbson::scoped_bson_t scoped_bson_tags(std::move(tags));
+    bsoncxx::libbson::scoped_bson_t scoped_bson_tags(std::move(tags));
     libmongoc::read_prefs_set_tags(_impl->read_preference_t, scoped_bson_tags.bson());
 
     return *this;

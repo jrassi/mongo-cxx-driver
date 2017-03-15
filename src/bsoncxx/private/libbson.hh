@@ -20,17 +20,16 @@
 #include <bsoncxx/document/view.hpp>
 #include <bsoncxx/document/view_or_value.hpp>
 #include <bsoncxx/stdx/optional.hpp>
-#include <mongocxx/stdx.hpp>
 
-#include <mongocxx/config/private/prelude.hh>
+#include <bsoncxx/config/private/prelude.hh>
 
-namespace mongocxx {
-MONGOCXX_INLINE_NAMESPACE_BEGIN
+namespace bsoncxx {
+BSONCXX_INLINE_NAMESPACE_BEGIN
 namespace libbson {
 
 //
 // Class that wraps and manages libmongoc's bson_t structures. It is useful for converting between
-// mongocxx's bson::document::view() and libmongoc's bson_t when communicating with the underlying
+// bsoncxx's bson::document::view() and libmongoc's bson_t when communicating with the underlying
 // driver. It is an RAII style class that will destroy an initialized bson_t when destructed.
 //
 // Libmongoc's bson_destroy will not be called on the bson_t upon destruction unless either
@@ -46,7 +45,7 @@ namespace libbson {
 // not call init itself (expecting an already initialized bson_t) then init() could be called
 // instead.
 //
-class scoped_bson_t {
+class BSONCXX_API scoped_bson_t {
    public:
     //
     // Constructs a new scoped_bson_t having a non-initialized internal bson_t.
@@ -126,7 +125,7 @@ class scoped_bson_t {
 };
 
 }  // namespace libbson
-MONGOCXX_INLINE_NAMESPACE_END
-}  // namespace mongocxx
+BSONCXX_INLINE_NAMESPACE_END
+}  // namespace bsoncxx
 
-#include <mongocxx/config/private/postlude.hh>
+#include <bsoncxx/config/private/postlude.hh>

@@ -45,7 +45,7 @@
 #include <mongocxx/private/client.hh>
 #include <mongocxx/private/collection.hh>
 #include <mongocxx/private/database.hh>
-#include <mongocxx/private/libbson.hh>
+#include <bsoncxx/private/libbson.hh>
 #include <mongocxx/private/libmongoc.hh>
 #include <mongocxx/private/pipeline.hh>
 #include <mongocxx/private/read_concern.hh>
@@ -70,8 +70,8 @@ mongocxx::stdx::optional<bsoncxx::document::value> find_and_modify(
     ::mongoc_collection_t* collection,
     view_or_value filter,
     const ::mongoc_find_and_modify_opts_t* opts) {
-    mongocxx::libbson::scoped_bson_t bson_filter{filter};
-    mongocxx::libbson::scoped_bson_t reply;
+    bsoncxx::libbson::scoped_bson_t bson_filter{filter};
+    bsoncxx::libbson::scoped_bson_t reply;
     reply.flag_init();
 
     ::bson_error_t error;
@@ -121,7 +121,7 @@ guard<T> make_guard(T&& t) {
 namespace mongocxx {
 MONGOCXX_INLINE_NAMESPACE_BEGIN
 
-using namespace libbson;
+using namespace bsoncxx::libbson;
 
 collection::collection() noexcept = default;
 collection::collection(collection&&) noexcept = default;

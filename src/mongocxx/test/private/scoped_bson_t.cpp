@@ -17,12 +17,12 @@
 #include <bsoncxx/document/view_or_value.hpp>
 #include <bsoncxx/stdx/optional.hpp>
 #include <bsoncxx/test_util/catch.hh>
-#include <mongocxx/private/libbson.hh>
+#include <bsoncxx/private/libbson.hh>
 #include <mongocxx/private/libmongoc.hh>
 
 using namespace bsoncxx;
+using namespace bsoncxx::libbson;
 using namespace mongocxx;
-using namespace mongocxx::libbson;
 
 TEST_CASE("scoped_bson_t", "[private]") {
     SECTION("Can be constructed") {

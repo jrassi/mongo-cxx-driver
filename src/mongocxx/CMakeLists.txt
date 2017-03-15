@@ -84,7 +84,6 @@ set(mongocxx_sources
     options/update.cpp
     pipeline.cpp
     pool.cpp
-    private/libbson.cpp
     private/libmongoc.cpp
     read_concern.cpp
     read_preference.cpp

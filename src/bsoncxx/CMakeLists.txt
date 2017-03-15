@@ -82,6 +82,7 @@ set(bsoncxx_sources
     json.cpp
     oid.cpp
     private/itoa.cpp
+    private/libbson.cpp
     string/view_or_value.cpp
     types.cpp
     types/value.cpp

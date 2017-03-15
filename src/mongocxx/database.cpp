@@ -26,7 +26,7 @@
 #include <mongocxx/exception/private/mongoc_error.hh>
 #include <mongocxx/private/client.hh>
 #include <mongocxx/private/database.hh>
-#include <mongocxx/private/libbson.hh>
+#include <bsoncxx/private/libbson.hh>
 #include <mongocxx/private/libmongoc.hh>
 #include <mongocxx/private/read_concern.hh>
 #include <mongocxx/private/read_preference.hh>
@@ -71,7 +71,7 @@ database::operator bool() const noexcept {
 }
 
 cursor database::list_collections(bsoncxx::document::view_or_value filter) {
-    libbson::scoped_bson_t filter_bson{filter};
+    bsoncxx::libbson::scoped_bson_t filter_bson{filter};
     bson_error_t error;
 
     auto result =
@@ -89,8 +89,8 @@ stdx::string_view database::name() const {
 }
 
 bsoncxx::document::value database::run_command(bsoncxx::document::view_or_value command) {
-    libbson::scoped_bson_t command_bson{command};
-    libbson::scoped_bson_t reply_bson;
+    bsoncxx::libbson::scoped_bson_t command_bson{command};
+    bsoncxx::libbson::scoped_bson_t reply_bson;
     bson_error_t error;
 
     reply_bson.flag_init();
@@ -184,7 +184,7 @@ class collection database::create_collection(bsoncxx::string::view_or_value name
     }
 
     bson_error_t error;
-    libbson::scoped_bson_t opts_bson{options_builder.view()};
+    bsoncxx::libbson::scoped_bson_t opts_bson{options_builder.view()};
     auto result = libmongoc::database_create_collection(
         _get_impl().database_t, name.terminated().data(), opts_bson.bson(), &error);
     if (!result) {
@@ -208,7 +208,7 @@ class collection database::create_view(bsoncxx::string::view_or_value name,
         options_builder << "pipeline" << options.pipeline()->view_array();
     }
 
-    libbson::scoped_bson_t opts_bson{options_builder.view()};
+    bsoncxx::libbson::scoped_bson_t opts_bson{options_builder.view()};
     bson_error_t error;
     auto result = libmongoc::database_create_collection(
         _get_impl().database_t, name.terminated().data(), opts_bson.bson(), &error);
