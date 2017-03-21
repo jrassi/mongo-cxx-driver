@@ -15,12 +15,11 @@
 #pragma once
 
 #include <istream>
+#include <memory>
 #include <ostream>
 
 #include <bsoncxx/stdx/string_view.hpp>
 #include <bsoncxx/types/value.hpp>
-#include <bsoncxx/view_or_value.hpp>
-#include <mongocxx/collection.hpp>
 #include <mongocxx/cursor.hpp>
 #include <mongocxx/database.hpp>
 #include <mongocxx/gridfs/downloader.hpp>
@@ -52,6 +51,13 @@ namespace gridfs {
 class MONGOCXX_API bucket {
    public:
     ///
+    /// Default constructs a bucket object. The bucket is equivalent to the state of a moved from
+    /// bucket. The only valid actions to take with a default constructed bucket are to assign to
+    /// it, or destroy it.
+    ///
+    bucket() noexcept;
+
+    ///
     /// Constructs a new GridFS bucket.
     ///
     /// @param db
@@ -72,9 +78,7 @@ class MONGOCXX_API bucket {
     ///
     /// Move assigns a bucket.
     ///
-    /// TODO: CXX-1235 Add noexcept specifier.
-    ///
-    bucket& operator=(bucket&&);
+    bucket& operator=(bucket&&) noexcept;
 
     ///
     /// Copy constructs a bucket.
@@ -85,6 +89,16 @@ class MONGOCXX_API bucket {
     /// Copy assigns a bucket.
     ///
     bucket& operator=(const bucket&);
+
+    ///
+    /// Destroys a bucket.
+    ///
+    ~bucket();
+
+    ///
+    /// Returns true if the bucket is valid, meaning it was not default constructed or moved from.
+    ///
+    explicit operator bool() const noexcept;
 
     ///
     /// Opens a gridfs::uploader to create a new GridFS file. The id of the file will be
@@ -242,20 +256,12 @@ class MONGOCXX_API bucket {
    private:
     MONGOCXX_PRIVATE void create_indexes_if_nonexistent();
 
-    // The name of the bucket.
-    std::string _bucket_name;
+    class MONGOCXX_PRIVATE impl;
 
-    // The default size of the chunks.
-    std::size_t _default_chunk_size_bytes;
+    MONGOCXX_PRIVATE impl& _get_impl();
+    MONGOCXX_PRIVATE const impl& _get_impl() const;
 
-    // The collection holding the chunks.
-    collection _chunks;
-
-    // The collection holding the files.
-    collection _files;
-
-    // Whether the required indexes have been created.
-    bool _indexes_created;
+    std::unique_ptr<impl> _impl;
 };
 
 }  // namespace gridfs
