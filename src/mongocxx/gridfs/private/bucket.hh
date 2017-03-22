@@ -31,18 +31,12 @@ class bucket::impl {
     impl(std::string bucket_name,
          std::size_t default_chunk_size_bytes,
          collection chunks,
-         collection files,
-         bool indexes_created)
+         collection files)
         : bucket_name{std::move(bucket_name)},
           default_chunk_size_bytes{default_chunk_size_bytes},
           chunks{std::move(chunks)},
           files{std::move(files)},
-          indexes_created{indexes_created} {}
-
-    impl(const impl& i) = default;
-
-    // This method is deleted because we only use the copy constructor.
-    impl& operator=(const impl& i) = delete;
+          indexes_created{false} {}
 
     // The name of the bucket.
     std::string bucket_name;

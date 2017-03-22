@@ -55,13 +55,8 @@ bucket::bucket(const database& db, const options::gridfs::bucket& options) {
     collection chunks = db[bucket_name + ".chunks"];
     collection files = db[bucket_name + ".files"];
 
-    bool indexes_created = false;
-
-    _impl = stdx::make_unique<impl>(std::move(bucket_name),
-                                    default_chunk_size_bytes,
-                                    std::move(chunks),
-                                    std::move(files),
-                                    indexes_created);
+    _impl = stdx::make_unique<impl>(
+        std::move(bucket_name), default_chunk_size_bytes, std::move(chunks), std::move(files));
 
     if (auto read_concern = options.read_concern()) {
         _get_impl().files.read_concern(*read_concern);
@@ -95,8 +90,12 @@ bucket::bucket(const bucket& b) {
 }
 
 bucket& bucket::operator=(const bucket& b) {
-    if (b) {
+    if (!b) {
+        _impl.reset();
+    } else if (!*this) {
         _impl = stdx::make_unique<impl>(b._get_impl());
+    } else {
+        *_impl = b._get_impl();
     }
     return *this;
 }
