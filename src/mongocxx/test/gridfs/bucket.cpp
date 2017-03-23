@@ -22,6 +22,7 @@ using namespace mongocxx;
 
 TEST_CASE("mongocxx::gridfs::bucket default constructor makes invalid bucket", "[gridfs::bucket]") {
     gridfs::bucket bucket;
+    REQUIRE(!bucket);
     REQUIRE_THROWS_AS(bucket.bucket_name(), logic_error);
 }
 
@@ -54,30 +55,30 @@ TEST_CASE("mongocxx::gridfs::bucket copy assignment operator", "[gridfs::bucket]
     SECTION("assigning valid to valid") {
         gridfs::bucket bucket_a{db, options::gridfs::bucket{}.bucket_name("foo")};
         gridfs::bucket bucket_b{db, options::gridfs::bucket{}.bucket_name("bar")};
-        bucket_a = bucket_b;
-        REQUIRE(bucket_a);
-        REQUIRE(bucket_a.bucket_name() == stdx::string_view{"bar"});
+        bucket_b = bucket_a;
+        REQUIRE(bucket_b);
+        REQUIRE(bucket_b.bucket_name() == stdx::string_view{"foo"});
     }
 
     SECTION("assigning invalid to valid") {
-        gridfs::bucket bucket_a{db, options::gridfs::bucket{}.bucket_name("foo")};
-        gridfs::bucket bucket_b;
-        bucket_a = bucket_b;
-        REQUIRE(!bucket_a);
+        gridfs::bucket bucket_a;
+        gridfs::bucket bucket_b{db, options::gridfs::bucket{}.bucket_name("foo")};
+        bucket_b = bucket_a;
+        REQUIRE(!bucket_b);
     }
 
     SECTION("assigning valid to invalid") {
-        gridfs::bucket bucket_a;
-        gridfs::bucket bucket_b{db, options::gridfs::bucket{}.bucket_name("foo")};
-        bucket_a = bucket_b;
-        REQUIRE(bucket_a);
-        REQUIRE(bucket_a.bucket_name() == stdx::string_view{"foo"});
+        gridfs::bucket bucket_a{db, options::gridfs::bucket{}.bucket_name("foo")};
+        gridfs::bucket bucket_b;
+        bucket_b = bucket_a;
+        REQUIRE(bucket_b);
+        REQUIRE(bucket_b.bucket_name() == stdx::string_view{"foo"});
     }
 
     SECTION("assigning invalid to invalid") {
         gridfs::bucket bucket_a;
         gridfs::bucket bucket_b;
-        bucket_a = bucket_b;
-        REQUIRE(!bucket_a);
+        bucket_b = bucket_a;
+        REQUIRE(!bucket_b);
     }
 }
