@@ -57,11 +57,10 @@ std::int32_t read_chunk_size_from_files_document(bsoncxx::document::view files_d
 
     // Each chunk needs to be able to fit in a single document.
     if (chunk_size > k_max_document_size) {
-        throw gridfs_exception{error_code::k_gridfs_file_corrupted,
-                               (std::ostringstream{} << "file has chunk size of " << chunk_size
-                                                     << ", which exceeds maximum chunk size of "
-                                                     << k_max_document_size)
-                                   .str()};
+        std::ostringstream err;
+        err << "file has chunk size of " << chunk_size << ", which exceeds maximum chunk size of "
+            << k_max_document_size;
+        throw gridfs_exception{error_code::k_gridfs_file_corrupted, err.str()};
     }
 
     return static_cast<std::int32_t>(chunk_size);
@@ -92,12 +91,10 @@ class downloader::impl {
             }
 
             if (num_chunks_div.quot > std::numeric_limits<std::int32_t>::max()) {
-                throw gridfs_exception{
-                    error_code::k_gridfs_file_corrupted,
-                    (std::ostringstream{} << "file has " << num_chunks_div.quot
-                                          << " chunks, which exceeds maximum of "
-                                          << std::numeric_limits<std::int32_t>::max())
-                        .str()};
+                std::ostringstream err;
+                err << "file has " << num_chunks_div.quot << " chunks, which exceeds maximum of "
+                    << std::numeric_limits<std::int32_t>::max();
+                throw gridfs_exception{error_code::k_gridfs_file_corrupted, err.str()};
             }
 
             file_chunk_count = static_cast<std::int32_t>(num_chunks_div.quot);
