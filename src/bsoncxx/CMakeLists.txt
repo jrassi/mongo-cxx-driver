@@ -64,7 +64,12 @@ set(BSONCXX_HEADER_INSTALL_DIR "include/bsoncxx/${BSONCXX_INLINE_NAMESPACE}" CAC
 
 set(LIBBSON_REQUIRED_VERSION 1.7.0)
 set(LIBBSON_REQUIRED_ABI_VERSION 1.0)
-find_package(LibBSON ${LIBBSON_REQUIRED_VERSION} REQUIRED)
+
+if (BUILD_SHARED_LIBS)
+    find_package(libbson-${LIBBSON_REQUIRED_ABI_VERSION} ${LIBBSON_REQUIRED_VERSION} REQUIRED)
+else()
+    find_package(libbson-static-${LIBBSON_REQUIRED_ABI_VERSION} ${LIBBSON_REQUIRED_VERSION} REQUIRED)
+endif()
 
 add_subdirectory(third_party)
 add_subdirectory(config)
@@ -89,45 +94,37 @@ set(bsoncxx_sources
 )
 
 include_directories(
-    ${LIBBSON_INCLUDE_DIRS}
+    ${BSON_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_BINARY_DIR}/src
 )
 
-link_directories(${LIBBSON_LIBRARY_DIRS})
+link_directories(${BSON_LIBRARY_DIRS})
 
 if (BSONCXX_POLY_USE_BOOST)
     find_package(Boost 1.56.0 REQUIRED)
 endif()
 
-add_library(bsoncxx_static STATIC
+add_library(bsoncxx
     ${bsoncxx_sources}
 )
 
-target_compile_definitions(bsoncxx_static PUBLIC BSONCXX_STATIC)
+if (NOT BUILD_SHARED_LIBS)
+    target_compile_definitions(bsoncxx PUBLIC BSONCXX_STATIC)
 
-# TODO CXX-1257: The below line can be removed once we've replaced FindLibBSON.cmake with a
-# dependency on libbson-static-1.0-config.cmake, which provides the definition for BSON_STATIC.
-target_compile_definitions(bsoncxx_static PUBLIC BSON_STATIC)
-
-set_target_properties(bsoncxx_static PROPERTIES
-    OUTPUT_NAME bsoncxx-static
-)
-
-add_library(bsoncxx SHARED
-    ${bsoncxx_sources}
-)
-
-set(bsoncxx_libs ${LIBBSON_LIBRARIES})
-
-set_target_properties(bsoncxx PROPERTIES
-    OUTPUT_NAME bsoncxx
-    VERSION ${BSONCXX_VERSION}
-    DEFINE_SYMBOL BSONCXX_EXPORT
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN ON
-    SOVERSION ${BSONCXX_ABI_VERSION}
-)
+    set_target_properties(bsoncxx PROPERTIES
+        OUTPUT_NAME bsoncxx-static
+    )
+else()
+    set_target_properties(bsoncxx PROPERTIES
+        OUTPUT_NAME bsoncxx
+        VERSION ${BSONCXX_VERSION}
+        DEFINE_SYMBOL BSONCXX_EXPORT
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN ON
+        SOVERSION ${BSONCXX_ABI_VERSION}
+    )
+endif()
 
 generate_export_header(bsoncxx
     BASE_NAME BSONCXX
@@ -138,18 +135,19 @@ generate_export_header(bsoncxx
 )
 
 if (BSONCXX_POLY_USE_MNMLSTC AND NOT BSONCXX_POLY_USE_SYSTEM_MNMLSTC)
-    add_dependencies(bsoncxx_static EP_mnmlstc_core)
     add_dependencies(bsoncxx EP_mnmlstc_core)
     ExternalProject_Get_Property(EP_mnmlstc_core source_dir)
-    target_include_directories(bsoncxx_static PUBLIC ${source_dir}/include)
     target_include_directories(bsoncxx PUBLIC ${source_dir}/include)
 elseif (BSONCXX_POLY_USE_BOOST)
-    target_include_directories(bsoncxx_static PUBLIC ${Boost_INCLUDE_DIRS})
     target_include_directories(bsoncxx PUBLIC ${Boost_INCLUDE_DIRS})
 endif()
 
-target_link_libraries(bsoncxx_static ${bsoncxx_libs})
-target_link_libraries(bsoncxx PRIVATE ${bsoncxx_libs})
+set(bsoncxx_libs ${BSON_LIBRARIES})
+if (BUILD_SHARED_LIBS)
+    target_link_libraries(bsoncxx PRIVATE ${bsoncxx_libs})
+else()
+    target_link_libraries(bsoncxx ${bsoncxx_libs})
+endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DESTINATION ${BSONCXX_HEADER_INSTALL_DIR}
@@ -171,12 +169,12 @@ if (BUILD_SHARED_LIBS)
         LIBRARY DESTINATION lib COMPONENT runtime
         ARCHIVE DESTINATION lib COMPONENT dev
     )
+else()
+    install(TARGETS
+        bsoncxx
+        ARCHIVE DESTINATION lib COMPONENT dev
+    )
 endif()
-
-install(TARGETS
-    bsoncxx_static
-    ARCHIVE DESTINATION lib COMPONENT dev
-)
 
 set(PACKAGE_INCLUDE_INSTALL_DIRS ${BSONCXX_HEADER_INSTALL_DIR})
 set(PACKAGE_LIBRARY_INSTALL_DIRS lib)
@@ -184,23 +182,27 @@ set(PACKAGE_LIBRARIES bsoncxx)
 
 include(CMakePackageConfigHelpers)
 
-foreach (pkg "libbsoncxx" "libbsoncxx-static")
-    configure_package_config_file(
-      cmake/${pkg}-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config.cmake
-      INSTALL_DESTINATION lib/cmake/${pkg}-${BSONCXX_VERSION}
-      PATH_VARS PACKAGE_INCLUDE_INSTALL_DIRS PACKAGE_LIBRARY_INSTALL_DIRS
-    )
+if (BUILD_SHARED_LIBS)
+    set(pkg "libbsoncxx")
+else()
+    set(pkg "libbsoncxx-static")
+endif()
 
-    write_basic_package_version_file(
-      ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config-version.cmake
-      VERSION ${BSONCXX_VERSION}
-      COMPATIBILITY SameMajorVersion
-    )
+configure_package_config_file(
+  cmake/${pkg}-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config.cmake
+  INSTALL_DESTINATION lib/cmake/${pkg}-${BSONCXX_VERSION}
+  PATH_VARS PACKAGE_INCLUDE_INSTALL_DIRS PACKAGE_LIBRARY_INSTALL_DIRS
+)
 
-    install(
-      FILES ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config-version.cmake
-      DESTINATION lib/cmake/${pkg}-${BSONCXX_VERSION}
-    )
-endforeach()
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config-version.cmake
+  VERSION ${BSONCXX_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config-version.cmake
+  DESTINATION lib/cmake/${pkg}-${BSONCXX_VERSION}
+)
 
 add_subdirectory(test)
