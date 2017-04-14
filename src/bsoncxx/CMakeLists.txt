@@ -108,16 +108,32 @@ endif()
 add_library(bsoncxx
     ${bsoncxx_sources}
 )
+add_library(bsoncxx_testing
+    ${bsoncxx_sources}
+)
+target_compile_definitions(bsoncxx_testing PUBLIC BSONCXX_TESTING)
 
 if (NOT BUILD_SHARED_LIBS)
     target_compile_definitions(bsoncxx PUBLIC BSONCXX_STATIC)
+    target_compile_definitions(bsoncxx_testing PUBLIC BSONCXX_STATIC)
 
     set_target_properties(bsoncxx PROPERTIES
         OUTPUT_NAME bsoncxx-static
     )
+    set_target_properties(bsoncxx_testing PROPERTIES
+        OUTPUT_NAME bsoncxx-testing
+    )
 else()
     set_target_properties(bsoncxx PROPERTIES
         OUTPUT_NAME bsoncxx
+        VERSION ${BSONCXX_VERSION}
+        DEFINE_SYMBOL BSONCXX_EXPORT
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN ON
+        SOVERSION ${BSONCXX_ABI_VERSION}
+    )
+    set_target_properties(bsoncxx_testing PROPERTIES
+        OUTPUT_NAME bsoncxx-testing
         VERSION ${BSONCXX_VERSION}
         DEFINE_SYMBOL BSONCXX_EXPORT
         CXX_VISIBILITY_PRESET hidden
@@ -134,19 +150,32 @@ generate_export_header(bsoncxx
     STATIC_DEFINE BSONCXX_STATIC
 )
 
+generate_export_header(bsoncxx_testing
+    BASE_NAME BSONCXX
+    EXPORT_MACRO_NAME BSONCXX_API
+    NO_EXPORT_MACRO_NAME BSONCXX_PRIVATE
+    EXPORT_FILE_NAME config/export.hpp
+    STATIC_DEFINE BSONCXX_STATIC
+)
+
 if (BSONCXX_POLY_USE_MNMLSTC AND NOT BSONCXX_POLY_USE_SYSTEM_MNMLSTC)
     add_dependencies(bsoncxx EP_mnmlstc_core)
+    add_dependencies(bsoncxx_testing EP_mnmlstc_core)
     ExternalProject_Get_Property(EP_mnmlstc_core source_dir)
     target_include_directories(bsoncxx PUBLIC ${source_dir}/include)
+    target_include_directories(bsoncxx_testing PUBLIC ${source_dir}/include)
 elseif (BSONCXX_POLY_USE_BOOST)
     target_include_directories(bsoncxx PUBLIC ${Boost_INCLUDE_DIRS})
+    target_include_directories(bsoncxx_testing PUBLIC ${Boost_INCLUDE_DIRS})
 endif()
 
 set(bsoncxx_libs ${BSON_LIBRARIES})
 if (BUILD_SHARED_LIBS)
     target_link_libraries(bsoncxx PRIVATE ${bsoncxx_libs})
+    target_link_libraries(bsoncxx_testing PRIVATE ${bsoncxx_libs})
 else()
     target_link_libraries(bsoncxx ${bsoncxx_libs})
+    target_link_libraries(bsoncxx_testing ${bsoncxx_libs})
 endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
