@@ -21,7 +21,7 @@ MONGOCXX_INLINE_NAMESPACE_BEGIN
 namespace libmongoc {
 
 #ifdef MONGOCXX_TESTING
-#define MONGOCXX_LIBMONGOC_SYMBOL(name)               \
+#define MONGOCXX_LIBMONGOC_SYMBOL(name)                            \
     MONGOCXX_API test_util::mock<decltype(&mongoc_##name)>& name = \
         *new test_util::mock<decltype(&mongoc_##name)>(mongoc_##name);
 #include "libmongoc_symbols.hh"
