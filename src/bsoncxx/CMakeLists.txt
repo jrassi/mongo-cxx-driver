@@ -211,26 +211,26 @@ set(PACKAGE_LIBRARIES bsoncxx)
 include(CMakePackageConfigHelpers)
 
 if (BUILD_SHARED_LIBS)
-    set(pkg "libbsoncxx")
+    set(PKG "libbsoncxx")
 else()
-    set(pkg "libbsoncxx-static")
+    set(PKG "libbsoncxx-static")
 endif()
 
 configure_package_config_file(
-  cmake/${pkg}-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config.cmake
-  INSTALL_DESTINATION lib/cmake/${pkg}-${BSONCXX_VERSION}
+  cmake/${PKG}-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/${PKG}-config.cmake
+  INSTALL_DESTINATION lib/cmake/${PKG}-${BSONCXX_VERSION}
   PATH_VARS PACKAGE_INCLUDE_INSTALL_DIRS PACKAGE_LIBRARY_INSTALL_DIRS
 )
 
 write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config-version.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/${PKG}-config-version.cmake
   VERSION ${BSONCXX_VERSION}
   COMPATIBILITY SameMajorVersion
 )
 
 install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/${pkg}-config-version.cmake
-  DESTINATION lib/cmake/${pkg}-${BSONCXX_VERSION}
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/${PKG}-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/${PKG}-config-version.cmake
+  DESTINATION lib/cmake/${PKG}-${BSONCXX_VERSION}
 )
 
 add_subdirectory(test)
