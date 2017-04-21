@@ -19,6 +19,7 @@ if (BSONCXX_POLY_USE_MNMLSTC AND NOT BSONCXX_POLY_USE_SYSTEM_MNMLSTC)
     ExternalProject_Add(
         EP_mnmlstc_core
         GIT_REPOSITORY https://github.com/mnmlstc/core
+#        GIT_REPOSITORY /Users/rassi/work/core
         GIT_TAG v1.1.0
         LOG_DOWNLOAD ON
         LOG_CONFIGURE ON
