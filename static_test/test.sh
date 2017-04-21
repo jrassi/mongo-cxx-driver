@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -x
 set -e
@@ -14,12 +14,16 @@ if [ "$1" != static -a "$1" != dynamic ]; then
 fi
 
 WITH_C_DRIVER=
+WITH_CXX_DRIVER=
 if [ "$2" ]; then
-    if [ "$2" != "with-c-driver" ]; then
-        echo "second arg must be 'with-c-driver'" >&2
+    if [ "$2" != "with-drivers" -a "$2" != "with-cxx-driver" ]; then
+        echo "second arg must be 'with-drivers' or 'with-cxx-driver'" >&2
         exit 1
     fi
-    WITH_C_DRIVER=1
+    WITH_CXX_DRIVER=1
+    if [ "$2" == "with-drivers" ]; then
+        WITH_C_DRIVER=1
+    fi
 fi
 
 STATIC=
@@ -38,13 +42,18 @@ else
     UNIX=1
 fi
 
-
 if [ "$UNIX" ]; then
     GENERATOR="Unix Makefiles"
     ADDL_OPTS=
+    DLM=":"
+    EXEC_PREFIX=.
 else
     GENERATOR="Visual Studio 14 Win64"
-    ADDL_OPTS='-DBOOST_ROOT="c:/local/boost_1_60_0"'
+    ADDL_OPTS="-DBOOST_ROOT=c:/local/boost_1_60_0"
+    DLM=";"
+    PATH=/cygdrive/c/cmake/bin:$PATH
+    PATH=/cygdrive/c/Program\ Files\ \(x86\)/MSBuild/14.0/Bin:$PATH
+    EXEC_PREFIX=Debug
 fi
 
 PREFIX=x
@@ -54,11 +63,10 @@ else
     PREFIX=c:/install
 fi
 
-rm -rf bson mongo a.out.dSYM static_bson.o dynamic_bson.o static_mongo.o dynamic_mongo.o
-rm -rf $PREFIX/libmongocxx
-rm -rf */build
+MONGOCXX_VER=3.1.1-pre
 
-exit
+rm -rf bson mongo a.out.dSYM static_bson.o dynamic_bson.o static_mongo.o dynamic_mongo.o
+rm -rf */build
 
 pushd ../..
 
@@ -75,16 +83,14 @@ _make() {
         elif [ "$TARGET" == "test" ]; then
             TARGET=RUN_TESTS.vcxproj
         elif [ "$TARGET" == "examples" ]; then
-            # TODO
-            false
+            TARGET=examples/examples.vcxproj
         elif [ "$TARGET" == "run-examples" ]; then
-            # TODO
-            false
+            TARGET=examples/run-examples.vcxproj
         else
             # TODO
             false
         fi
-        MSBuild.exe /m "$TARGET"
+        MSBuild.exe /m $TARGET
     fi
 }
 
@@ -95,31 +101,83 @@ if [ "$WITH_C_DRIVER" ]; then
     git clean -xfd
     cmake -G "$GENERATOR" -DCMAKE_BUILD_TYPE:STRING=Debug -DENABLE_TESTS:BOOL=OFF -DCMAKE_INSTALL_PREFIX=$PREFIX/libbson .
     #./autogen.sh --prefix=$PREFIX/libbson --enable-debug --disable-tests --enable-static
-    _make 2>&1 | tee build.log # CMAKE
-    #make V=1 2>&1 | tee build.log # AUTOTOOLS
+    _make
     _make install
 
     cd ../..
     git clean -xfd
     cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH=$PREFIX/libbson -DCMAKE_BUILD_TYPE:STRING=Debug -DENABLE_TESTS:BOOL=OFF -DCMAKE_INSTALL_PREFIX=$PREFIX/libmongoc .
-    _make 2>&1 | tee build.log # CMAKE
+    _make
     _make install
     cd ..
 fi
 
 cd mongo-cxx-driver
-rm -rf build
-git checkout build
-cd build
 
-#PKG_CONFIG_PATH=$PREFIX/libbson/lib/pkgconfig cmake -G "$GENERATOR" -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_INSTALL_PREFIX=$PREFIX/libmongocxx ..
-CMAKE_PREFIX_PATH="$PREFIX/libbson/lib/cmake/libbson-1.0:$PREFIX/libbson/lib/cmake/libbson-static-1.0:$PREFIX/libmongoc/lib/cmake/libmongoc-1.0:$PREFIX/libmongoc/lib/cmake/libmongoc-static-1.0" cmake -G "$GENERATOR" -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_INSTALL_PREFIX=$PREFIX/libmongocxx -DBUILD_SHARED_LIBS=$BUILD_SHARED_LIBS ..
-_make | tee build.log
-_make install
-DYLD_LIBRARY_PATH=$PREFIX/libmongoc/lib:$PREFIX/libbson/lib _make test
+if [ "$WITH_CXX_DRIVER" ]; then
+    rm -rf $PREFIX/libmongocxx
+    rm -rf build
+    git checkout build
+    cd build
+    cmake -G "$GENERATOR" -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_INSTALL_PREFIX=$PREFIX/libmongocxx -DBUILD_SHARED_LIBS=$BUILD_SHARED_LIBS -DCMAKE_PREFIX_PATH="$PREFIX/libbson/lib/cmake/libbson-1.0${DLM}$PREFIX/libbson/lib/cmake/libbson-static-1.0${DLM}$PREFIX/libmongoc/lib/cmake/libmongoc-1.0${DLM}$PREFIX/libmongoc/lib/cmake/libmongoc-static-1.0" ${ADDL_OPTS} ..
+    _make
+    _make install
+    cd ..
+fi
+
+cd build
+(
+    export DYLD_LIBRARY_PATH=$PREFIX/libmongoc/lib:$PREFIX/libbson/lib
+    export PATH=$(pwd)/src/bsoncxx/Debug:$(pwd)/src/mongocxx/Debug:/cygdrive/c/install/libmongoc/bin:/cygdrive/c/install/libbson/bin:$PATH
+    _make test
+)
 _make examples
-DYLD_LIBRARY_PATH=$PREFIX/libmongoc/lib:$PREFIX/libbson/lib _make run-examples
+(
+    export DYLD_LIBRARY_PATH=$PREFIX/libmongoc/lib:$PREFIX/libbson/lib
+    export PATH=$(pwd)/src/bsoncxx/Debug:$(pwd)/src/mongocxx/Debug:/cygdrive/c/install/libmongoc/bin:/cygdrive/c/install/libbson/bin:$PATH
+    _make run-examples
+)
 popd
+
+if [ "$STATIC" ]; then
+    mkdir -p find_package_bsoncxx_static/build
+    cd find_package_bsoncxx_static/build
+    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-static-${MONGOCXX_VER}${DLM}$PREFIX/libbson/lib/cmake/libbson-static-1.0" ..
+    _make
+    $EXEC_PREFIX/hello_bsoncxx
+    cd ../..
+else
+    mkdir -p find_package_bsoncxx/build
+    cd find_package_bsoncxx/build
+    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-${MONGOCXX_VER}${DLM}$PREFIX/libbson/lib/cmake/libbson-1.0" ..
+    _make
+    (
+        export DYLD_LIBRARY_PATH=$PREFIX/libmongocxx/lib:$PREFIX/libbson/lib
+        export PATH=/cygdrive/c/install/libmongocxx/bin:/cygdrive/c/install/libmongoc/bin:/cygdrive/c/install/libbson/bin:$PATH
+        $EXEC_PREFIX/hello_bsoncxx
+    )
+    cd ../..
+fi
+
+if [ "$STATIC" ]; then
+    mkdir -p find_package_mongocxx_static/build
+    cd find_package_mongocxx_static/build
+    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-static-${MONGOCXX_VER}${DLM}$PREFIX/libbson/lib/cmake/libbson-static-1.0${DLM}$PREFIX/libmongoc/lib/cmake/libmongoc-static-1.0${DLM}$PREFIX/libmongocxx/lib/cmake/libmongocxx-static-${MONGOCXX_VER}" ..
+    _make
+    $EXEC_PREFIX/hello_mongocxx
+    cd ../..
+else 
+    mkdir -p find_package_mongocxx/build
+    cd find_package_mongocxx/build
+    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-${MONGOCXX_VER}${DLM}$PREFIX/libmongocxx/lib/cmake/libmongocxx-${MONGOCXX_VER}" ..
+    _make
+    (
+        export DYLD_LIBRARY_PATH=$PREFIX/libmongocxx/lib:$PREFIX/libmongoc/lib:$PREFIX/libbson/lib
+        export PATH=/cygdrive/c/install/libmongocxx/bin:/cygdrive/c/install/libmongoc/bin:/cygdrive/c/install/libbson/bin:$PATH
+        $EXEC_PREFIX/hello_mongocxx
+    )
+    cd ../..
+fi
 
 if [ "$UNIX" ]; then
     if [ "$STATIC" ]; then
@@ -141,36 +199,4 @@ if [ "$UNIX" ]; then
         g++ -o mongo -std=c++11 -g -Wall dynamic_mongo.o $(PKG_CONFIG_PATH=$PREFIX/libmongocxx/lib/pkgconfig pkg-config --libs libmongocxx)
         DYLD_LIBRARY_PATH=$PREFIX/libmongocxx/lib:$PREFIX/libbson/lib:$PREFIX/libmongoc/lib ./mongo
     fi
-fi
-
-if [ "$STATIC" ]; then
-    mkdir -p find_package_bsoncxx_static/build
-    cd find_package_bsoncxx_static/build
-    CMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-static-3.1.1-pre:$PREFIX/libbson/lib/cmake/libbson-static-1.0" cmake -G "$GENERATOR" ..
-    _make
-    ./hello_bsoncxx
-    cd ../..
-else
-    mkdir -p find_package_bsoncxx/build
-    cd find_package_bsoncxx/build
-    CMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-3.1.1-pre:$PREFIX/libbson/lib/cmake/libbson-1.0" cmake -G "$GENERATOR" ..
-    _make
-    DYLD_LIBRARY_PATH=$PREFIX/libmongocxx/lib:$PREFIX/libbson/lib ./hello_bsoncxx
-    cd ../..
-fi
-
-if [ "$STATIC" ]; then
-    mkdir -p find_package_mongocxx_static/build
-    cd find_package_mongocxx_static/build
-    CMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-static-3.1.1-pre:$PREFIX/libbson/lib/cmake/libbson-static-1.0:$PREFIX/libmongoc/lib/cmake/libmongoc-static-1.0:$PREFIX/libmongocxx/lib/cmake/libmongocxx-static-3.1.1-pre" cmake -G "$GENERATOR" ..
-    _make
-    ./hello_mongocxx
-    cd ../..
-else 
-    mkdir -p find_package_mongocxx/build
-    cd find_package_mongocxx/build
-    CMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-3.1.1-pre:$PREFIX/libmongocxx/lib/cmake/libmongocxx-3.1.1-pre" cmake -G "$GENERATOR" ..
-    _make
-    DYLD_LIBRARY_PATH=$PREFIX/libmongocxx/lib:$PREFIX/libmongoc/lib:$PREFIX/libbson/lib ./hello_mongocxx
-    cd ../..
 fi
