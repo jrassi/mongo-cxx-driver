@@ -162,12 +162,9 @@ functions:
 
                   MONGOC_PREFIX="$(pwd)/../mongoc"
                   if [ "Windows_NT" == "$OS" ]; then
-                      DELIM=";"
                       MONGOC_PREFIX=$(cygpath -m "$MONGOC_PREFIX")
-                  else
-                      DELIM=";"
                   fi
-                  MONGOC_PREFIX_PATHS="$MONGOC_PREFIX/lib/cmake/libbson-1.0$DELIM$MONGOC_PREFIX/lib/cmake/libbson-static-1.0$DELIM$MONGOC_PREFIX/lib/cmake/libmongoc-1.0$DELIM$MONGOC_PREFIX/lib/cmake/libmongoc-static-1.0"
+                  MONGOC_PREFIX_PATHS="$MONGOC_PREFIX/lib/cmake/libbson-1.0;$MONGOC_PREFIX/lib/cmake/libbson-static-1.0;$MONGOC_PREFIX/lib/cmake/libmongoc-1.0;$MONGOC_PREFIX/lib/cmake/libmongoc-static-1.0"
                   sh .evergreen/compile.sh -DCMAKE_PREFIX_PATH="$MONGOC_PREFIX_PATHS" ${cmake_flags} ${poly_flags} $ADDL_OPTS -DCMAKE_INSTALL_PREFIX=install
 
     "test":
