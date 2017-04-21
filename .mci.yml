@@ -38,12 +38,12 @@ variables:
 
     ## cmake flag variables
     cmake_flags:
-        linux_cmake_flags: &linux_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror -Wno-error=missing-field-initializers" -DCMAKE_PREFIX_PATH="$(pwd)/../mongoc"
-        rhel55_cmake_flags: &rhel55_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DCMAKE_PREFIX_PATH="$(pwd)/../mongoc"
-        osx_cmake_flags: &osx_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_FLAGS="-stdlib=libc++ -Wall -Wextra -Werror" -DCMAKE_PREFIX_PATH="$(pwd)/../mongoc"
-        asan_cmake_flags: &asan_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_COMPILER="/usr/bin/clang++" -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -fsanitize=address -O1 -g -fno-omit-frame-pointer -Wall -Wextra -Werror" -DCMAKE_PREFIX_PATH="$(pwd)/../mongoc"
-        ubsan_cmake_flags: &ubsan_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_COMPILER="/usr/bin/clang++" -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -fsanitize=undefined -fsanitize-blacklist=$(pwd)/etc/ubsan.blacklist -fno-sanitize-recover=undefined -O1 -g -fno-omit-frame-pointer -Wall -Wextra -Werror" -DCMAKE_PREFIX_PATH="$(pwd)/../mongoc"
-        windows_cmake_flags: &windows_cmake_flags -G "Visual Studio 14 2015 Win64" -DBOOST_ROOT=c:/local/boost_1_60_0 -DCMAKE_PREFIX_PATH=$(cygpath -m "$(pwd)/../mongoc")
+        linux_cmake_flags: &linux_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror -Wno-error=missing-field-initializers"
+        rhel55_cmake_flags: &rhel55_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
+        osx_cmake_flags: &osx_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_FLAGS="-stdlib=libc++ -Wall -Wextra -Werror"
+        asan_cmake_flags: &asan_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_COMPILER="/usr/bin/clang++" -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -fsanitize=address -O1 -g -fno-omit-frame-pointer -Wall -Wextra -Werror"
+        ubsan_cmake_flags: &ubsan_cmake_flags -DCMAKE_C_FLAGS="-Wall -Wextra -Wno-attributes -Werror -Wno-error=missing-field-initializers" -DCMAKE_CXX_COMPILER="/usr/bin/clang++" -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -fsanitize=undefined -fsanitize-blacklist=$(pwd)/etc/ubsan.blacklist -fno-sanitize-recover=undefined -O1 -g -fno-omit-frame-pointer -Wall -Wextra -Werror"
+        windows_cmake_flags: &windows_cmake_flags -G "Visual Studio 14 2015 Win64" -DBOOST_ROOT=c:/local/boost_1_60_0
 
     poly_flags:
         poly_boost_flags: &poly_boost_flags -DBSONCXX_POLY_USE_BOOST=ON
@@ -154,11 +154,26 @@ functions:
                   export PATH_TO_CMAKE="${cmake_path}"
                   export PATH_TO_BUILD_TOOL="${build_tool_path}"
                   export BUILD_TYPE=${build_type}
+
                   ADDL_OPTS=
                   if [ "${USE_STATIC_LIBS}" ]; then
                       ADDL_OPTS="-DBUILD_SHARED_LIBS=OFF"
                   fi
-                  sh .evergreen/compile.sh ${cmake_flags} ${poly_flags} ${ADDL_OPTS} -DCMAKE_INSTALL_PREFIX=install
+
+                  MONGOC_PREFIX="$(pwd)/../mongoc"
+                  if [ "Windows_NT" == "$OS" ]; then
+                      DELIM=";"
+                      MONGOC_PREFIX=$(cygpath -m "$MONGOC_PREFIX")
+                  else
+                      DELIM=";"
+                  fi
+                  find $MONGOC_PREFIX || true
+                  ls $MONGOC_PREFIX/lib/cmake/libbson-1.0 || true
+                  cat $MONGOC_PREFIX/lib/cmake/libbson-1.0/libbson-1.0-config.cmake || true
+                  MONGOC_PREFIX_PATHS="$MONGOC_PREFIX/lib/cmake/libbson-1.0$DELIM$MONGOC_PREFIX/lib/cmake/libbson-static-1.0$DELIM$MONGOC_PREFIX/lib/cmake/libmongoc-1.0$DELIM$MONGOC_PREFIX/lib/cmake/libmongoc-static-1.0"
+                  #MONGOC_PREFIX_PATHS="$MONGOC_PREFIX/lib/cmake/libbson-1.0"
+                  #export CMAKE_PREFIX_PATH="$MONGOC_PREFIX_PATHS"
+                  sh .evergreen/compile.sh -DCMAKE_PREFIX_PATH="$MONGOC_PREFIX_PATHS" ${cmake_flags} ${poly_flags} $ADDL_OPTS -DCMAKE_INSTALL_PREFIX=install
 
     "test":
         - command: shell.exec
@@ -176,7 +191,11 @@ functions:
                   # mongocxx library dependencies.
                   export LD_LIBRARY_PATH=.:$PREFIX/lib/
                   export DYLD_LIBRARY_PATH=.:$PREFIX/lib/
-                  export PATH=$PREFIX/bin:$(pwd)/install/bin:$PATH
+                  # TODO split this out, so the build directory isn't part of $PATH for examples
+                  export PATH=$(pwd)/src/bsoncxx/${build_type}:$(pwd)/src/mongocxx/${build_type}:$PREFIX/bin:$(pwd)/install/bin:$PATH
+                  ls $PREFIX/bin || true
+                  ls $(pwd)/install/bin || true
+                  cygcheck src/mongocxx/test/Debug/test_driver.exe || true
 
                   # CRUD_TESTS_PATH and GRIDFS_TESTS_PATH are required to be set by the
                   # `test_crud_specs` and `test_gridfs_specs` test binaries, respectively.
@@ -281,6 +300,7 @@ buildvariants:
           - ubuntu1404-test
       tasks:
           - name: compile_and_test_with_shared_libs
+          - name: compile_and_test_with_static_libs
 
     - name: rhel55-debug
       display_name: "RHEL 5.5 Debug"
@@ -394,6 +414,7 @@ buildvariants:
           build_tool_path: *unix_build_tool_path
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *ubuntu_zap_cmake_path
+          cmake_flags: *linux_cmake_flags
           mongodb_version: *version_latest
       run_on:
           - ubuntu1604-zseries-small
@@ -410,6 +431,7 @@ buildvariants:
           build_tool_path: *unix_build_tool_path
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *ubuntu_zap_cmake_path
+          cmake_flags: *linux_cmake_flags
           mongodb_version: *version_latest
       run_on:
           - ubuntu1604-power8-build
@@ -426,6 +448,7 @@ buildvariants:
           build_tool_path: *unix_build_tool_path
           cdriver_configure_flags: *linux_cdriver_configure_flags
           cmake_path: *ubuntu_zap_cmake_path
+          cmake_flags: *linux_cmake_flags
           mongodb_version: *version_latest
       run_on:
           - ubuntu1604-arm64-small

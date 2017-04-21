@@ -117,6 +117,10 @@ add_library(mongocxx_mocked
 )
 target_compile_definitions(mongocxx_mocked PUBLIC MONGOCXX_TESTING)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(mongocxx_mocked PRIVATE /bigobj)
+endif()
+
 if (BUILD_SHARED_LIBS)
     set_target_properties (mongocxx PROPERTIES
         OUTPUT_NAME mongocxx
