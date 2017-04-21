@@ -167,12 +167,7 @@ functions:
                   else
                       DELIM=";"
                   fi
-                  find $MONGOC_PREFIX || true
-                  ls $MONGOC_PREFIX/lib/cmake/libbson-1.0 || true
-                  cat $MONGOC_PREFIX/lib/cmake/libbson-1.0/libbson-1.0-config.cmake || true
                   MONGOC_PREFIX_PATHS="$MONGOC_PREFIX/lib/cmake/libbson-1.0$DELIM$MONGOC_PREFIX/lib/cmake/libbson-static-1.0$DELIM$MONGOC_PREFIX/lib/cmake/libmongoc-1.0$DELIM$MONGOC_PREFIX/lib/cmake/libmongoc-static-1.0"
-                  #MONGOC_PREFIX_PATHS="$MONGOC_PREFIX/lib/cmake/libbson-1.0"
-                  #export CMAKE_PREFIX_PATH="$MONGOC_PREFIX_PATHS"
                   sh .evergreen/compile.sh -DCMAKE_PREFIX_PATH="$MONGOC_PREFIX_PATHS" ${cmake_flags} ${poly_flags} $ADDL_OPTS -DCMAKE_INSTALL_PREFIX=install
 
     "test":
@@ -186,16 +181,12 @@ functions:
                   export PREFIX=$(pwd)/../../mongoc
 
                   # Use PATH / LD_LIBRARY_PATH / DYLD_LIBRARY_PATH to inform the tests where to find
-                  # mongoc library dependencies on Linux / Mac OS / Windows, respectively.
+                  # mongoc library dependencies on Windows / Linux / Mac OS, respectively.
                   # Additionally, on Windows, we also need to inform the tests where to find
                   # mongocxx library dependencies.
                   export LD_LIBRARY_PATH=.:$PREFIX/lib/
                   export DYLD_LIBRARY_PATH=.:$PREFIX/lib/
-                  # TODO split this out, so the build directory isn't part of $PATH for examples
                   export PATH=$(pwd)/src/bsoncxx/${build_type}:$(pwd)/src/mongocxx/${build_type}:$PREFIX/bin:$(pwd)/install/bin:$PATH
-                  ls $PREFIX/bin || true
-                  ls $(pwd)/install/bin || true
-                  cygcheck src/mongocxx/test/Debug/test_driver.exe || true
 
                   # CRUD_TESTS_PATH and GRIDFS_TESTS_PATH are required to be set by the
                   # `test_crud_specs` and `test_gridfs_specs` test binaries, respectively.
