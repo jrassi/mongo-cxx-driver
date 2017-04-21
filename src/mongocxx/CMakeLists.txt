@@ -125,10 +125,17 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(mongocxx_mocked PRIVATE /bigobj)
 endif()
 
+set_target_properties(mongocxx_mocked PROPERTIES
+    OUTPUT_NAME mongocxx-mocked
+)
+
 if (BUILD_SHARED_LIBS)
+    set_target_properties(mongocxx PROPERTIES
+        OUTPUT_NAME mongocxx
+    )
+
     foreach (TARGET mongocxx mongocxx_mocked)
         set_target_properties (${TARGET} PROPERTIES
-            OUTPUT_NAME mongocxx
             VERSION ${MONGOCXX_VERSION}
             DEFINE_SYMBOL MONGOCXX_EXPORTS
             CXX_VISIBILITY_PRESET hidden
@@ -142,9 +149,6 @@ else()
 
     set_target_properties(mongocxx PROPERTIES
         OUTPUT_NAME mongocxx-static
-    )
-    set_target_properties(mongocxx_mocked PROPERTIES
-        OUTPUT_NAME mongocxx-mocked
     )
 endif()
 

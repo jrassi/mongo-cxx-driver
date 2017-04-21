@@ -116,10 +116,17 @@ add_library(bsoncxx_testing
 )
 target_compile_definitions(bsoncxx_testing PUBLIC BSONCXX_TESTING)
 
+set_target_properties(bsoncxx_testing PROPERTIES
+    OUTPUT_NAME bsoncxx-testing
+)
+
 if (BUILD_SHARED_LIBS)
+    set_target_properties(bsoncxx PROPERTIES
+        OUTPUT_NAME bsoncxx
+    )
+
     foreach (TARGET bsoncxx bsoncxx_testing)
         set_target_properties(${TARGET} PROPERTIES
-            OUTPUT_NAME bsoncxx
             VERSION ${BSONCXX_VERSION}
             DEFINE_SYMBOL BSONCXX_EXPORT
             CXX_VISIBILITY_PRESET hidden
@@ -133,9 +140,6 @@ else()
 
     set_target_properties(bsoncxx PROPERTIES
         OUTPUT_NAME bsoncxx-static
-    )
-    set_target_properties(bsoncxx_testing PROPERTIES
-        OUTPUT_NAME bsoncxx-testing
     )
 endif()
 
