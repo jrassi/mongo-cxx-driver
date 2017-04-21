@@ -109,6 +109,10 @@ include_directories(
     ${CMAKE_BINARY_DIR}/src
 )
 
+# We define two libraries: the nonmal library and the testing-only library.  The testing-only
+# library does not get installed, but the tests link against it instead of the normal library.  The
+# only difference between the two libraries is that MONGOCXX_TESTING is defined in the testing-only
+# library (this define enables special testing-only behavior).
 add_library(mongocxx
     ${mongocxx_sources}
 )
@@ -122,23 +126,16 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 if (BUILD_SHARED_LIBS)
-    set_target_properties (mongocxx PROPERTIES
-        OUTPUT_NAME mongocxx
-        VERSION ${MONGOCXX_VERSION}
-        DEFINE_SYMBOL MONGOCXX_EXPORTS
-        CXX_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN ON
-        SOVERSION ${MONGOCXX_ABI_VERSION}
-    )
-
-    set_target_properties (mongocxx_mocked PROPERTIES
-        OUTPUT_NAME mongocxx-mocked
-        VERSION ${MONGOCXX_VERSION}
-        DEFINE_SYMBOL MONGOCXX_EXPORTS
-        CXX_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN ON
-        SOVERSION ${MONGOCXX_ABI_VERSION}
-    )
+    foreach (TARGET mongocxx mongocxx_mocked)
+        set_target_properties (${TARGET} PROPERTIES
+            OUTPUT_NAME mongocxx
+            VERSION ${MONGOCXX_VERSION}
+            DEFINE_SYMBOL MONGOCXX_EXPORTS
+            CXX_VISIBILITY_PRESET hidden
+            VISIBILITY_INLINES_HIDDEN ON
+            SOVERSION ${MONGOCXX_ABI_VERSION}
+        )
+    endforeach(TARGET)
 else()
     target_compile_definitions(mongocxx PUBLIC MONGOCXX_STATIC)
     target_compile_definitions(mongocxx_mocked PUBLIC MONGOCXX_STATIC)
@@ -166,13 +163,13 @@ generate_export_header(mongocxx_mocked
     STATIC_DEFINE MONGOCXX_STATIC
 )
 
-set(mongocxx_libs ${MONGOC_LIBRARIES})
+set(mongocxx_dependencies ${MONGOC_LIBRARIES})
 if (BUILD_SHARED_LIBS)
-    target_link_libraries(mongocxx PUBLIC bsoncxx PRIVATE ${mongocxx_libs})
-    target_link_libraries(mongocxx_mocked PUBLIC bsoncxx PRIVATE ${mongocxx_libs})
+    target_link_libraries(mongocxx PUBLIC bsoncxx PRIVATE ${mongocxx_dependencies})
+    target_link_libraries(mongocxx_mocked PUBLIC bsoncxx PRIVATE ${mongocxx_dependencies})
 else()
-    target_link_libraries(mongocxx bsoncxx ${mongocxx_libs})
-    target_link_libraries(mongocxx_mocked bsoncxx ${mongocxx_libs})
+    target_link_libraries(mongocxx bsoncxx ${mongocxx_dependencies})
+    target_link_libraries(mongocxx_mocked bsoncxx ${mongocxx_dependencies})
 endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -188,19 +185,12 @@ install(FILES
     COMPONENT dev
 )
 
-if (BUILD_SHARED_LIBS)
-    install(TARGETS
-        mongocxx
-        RUNTIME DESTINATION bin COMPONENT runtime
-        LIBRARY DESTINATION lib COMPONENT runtime
-        ARCHIVE DESTINATION lib COMPONENT dev
-    )
-else()
-    install(TARGETS
-        mongocxx
-        ARCHIVE DESTINATION lib COMPONENT dev
-    )
-endif()
+install(TARGETS
+    mongocxx
+    RUNTIME DESTINATION bin COMPONENT runtime
+    LIBRARY DESTINATION lib COMPONENT runtime
+    ARCHIVE DESTINATION lib COMPONENT dev
+)
 
 set(PACKAGE_INCLUDE_INSTALL_DIRS ${MONGOCXX_HEADER_INSTALL_DIR})
 set(PACKAGE_LIBRARY_INSTALL_DIRS lib)

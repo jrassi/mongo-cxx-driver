@@ -104,6 +104,10 @@ if (BSONCXX_POLY_USE_BOOST)
     find_package(Boost 1.56.0 REQUIRED)
 endif()
 
+# We define two libraries: the nonmal library and the testing-only library.  The testing-only
+# library does not get installed, but the tests link against it instead of the normal library.  The
+# only difference between the two libraries is that BSONCXX_TESTING is defined in the testing-only
+# library (this define enables special testing-only behavior).
 add_library(bsoncxx
     ${bsoncxx_sources}
 )
@@ -113,22 +117,16 @@ add_library(bsoncxx_testing
 target_compile_definitions(bsoncxx_testing PUBLIC BSONCXX_TESTING)
 
 if (BUILD_SHARED_LIBS)
-    set_target_properties(bsoncxx PROPERTIES
-        OUTPUT_NAME bsoncxx
-        VERSION ${BSONCXX_VERSION}
-        DEFINE_SYMBOL BSONCXX_EXPORT
-        CXX_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN ON
-        SOVERSION ${BSONCXX_ABI_VERSION}
-    )
-    set_target_properties(bsoncxx_testing PROPERTIES
-        OUTPUT_NAME bsoncxx-testing
-        VERSION ${BSONCXX_VERSION}
-        DEFINE_SYMBOL BSONCXX_EXPORT
-        CXX_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN ON
-        SOVERSION ${BSONCXX_ABI_VERSION}
-    )
+    foreach (TARGET bsoncxx bsoncxx_testing)
+        set_target_properties(${TARGET} PROPERTIES
+            OUTPUT_NAME bsoncxx
+            VERSION ${BSONCXX_VERSION}
+            DEFINE_SYMBOL BSONCXX_EXPORT
+            CXX_VISIBILITY_PRESET hidden
+            VISIBILITY_INLINES_HIDDEN ON
+            SOVERSION ${BSONCXX_ABI_VERSION}
+        )
+    endforeach(TARGET)
 else()
     target_compile_definitions(bsoncxx PUBLIC BSONCXX_STATIC)
     target_compile_definitions(bsoncxx_testing PUBLIC BSONCXX_STATIC)
@@ -168,13 +166,13 @@ elseif (BSONCXX_POLY_USE_BOOST)
     target_include_directories(bsoncxx_testing PUBLIC ${Boost_INCLUDE_DIRS})
 endif()
 
-set(bsoncxx_libs ${BSON_LIBRARIES})
+set(bsoncxx_dependencies ${BSON_LIBRARIES})
 if (BUILD_SHARED_LIBS)
-    target_link_libraries(bsoncxx PRIVATE ${bsoncxx_libs})
-    target_link_libraries(bsoncxx_testing PRIVATE ${bsoncxx_libs})
+    target_link_libraries(bsoncxx PRIVATE ${bsoncxx_dependencies})
+    target_link_libraries(bsoncxx_testing PRIVATE ${bsoncxx_dependencies})
 else()
-    target_link_libraries(bsoncxx ${bsoncxx_libs})
-    target_link_libraries(bsoncxx_testing ${bsoncxx_libs})
+    target_link_libraries(bsoncxx ${bsoncxx_dependencies})
+    target_link_libraries(bsoncxx_testing ${bsoncxx_dependencies})
 endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -190,19 +188,12 @@ install(FILES
     COMPONENT dev
 )
 
-if (BUILD_SHARED_LIBS)
-    install(TARGETS
-        bsoncxx
-        RUNTIME DESTINATION bin COMPONENT runtime
-        LIBRARY DESTINATION lib COMPONENT runtime
-        ARCHIVE DESTINATION lib COMPONENT dev
-    )
-else()
-    install(TARGETS
-        bsoncxx
-        ARCHIVE DESTINATION lib COMPONENT dev
-    )
-endif()
+install(TARGETS
+    bsoncxx
+    RUNTIME DESTINATION bin COMPONENT runtime
+    LIBRARY DESTINATION lib COMPONENT runtime
+    ARCHIVE DESTINATION lib COMPONENT dev
+)
 
 set(PACKAGE_INCLUDE_INSTALL_DIRS ${BSONCXX_HEADER_INSTALL_DIR})
 set(PACKAGE_LIBRARY_INSTALL_DIRS lib)

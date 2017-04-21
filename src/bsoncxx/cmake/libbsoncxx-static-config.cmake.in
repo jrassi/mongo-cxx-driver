@@ -23,8 +23,10 @@ find_package(libbson-static-@LIBBSON_REQUIRED_ABI_VERSION@ @LIBBSON_REQUIRED_VER
 
 set_and_check(LIBBSONCXX_INCLUDE_DIRS "${PACKAGE_PREFIX_DIR}/@PACKAGE_INCLUDE_INSTALL_DIRS@")
 
-find_library(LIBBSONCXX_LIBRARY_PATH bsoncxx-static PATHS "${PACKAGE_PREFIX_DIR}/@PACKAGE_LIBRARY_INSTALL_DIRS@")
-# TODO: Logic to bail if the library was not found.
+# We want to provide an absolute path to the library and we know the
+# directory and the base name, but not the suffix, so we use CMake's
+# find_library() to pick that up.
+find_library(LIBBSONCXX_LIBRARY_PATH bsoncxx-static PATHS "${PACKAGE_PREFIX_DIR}/@PACKAGE_LIBRARY_INSTALL_DIRS@" NO_DEFAULT_PATH)
 set(LIBBSONCXX_LIBRARIES ${LIBBSONCXX_LIBRARY_PATH} ${BSON_LIBRARIES})
 
 add_definitions(-DBSONCXX_STATIC)

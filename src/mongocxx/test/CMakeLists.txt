@@ -72,14 +72,14 @@ add_executable(test_driver
     ${mongocxx_test_sources}
 )
 
-target_link_libraries(test_driver mongocxx_mocked ${mongocxx_libs})
+target_link_libraries(test_driver mongocxx_mocked ${mongocxx_dependencies})
 
 add_executable(test_instance
   ${THIRD_PARTY_SOURCE_DIR}/catch/main.cpp
   instance.cpp
 )
 
-target_link_libraries(test_instance mongocxx_mocked ${mongocxx_libs})
+target_link_libraries(test_instance mongocxx_mocked ${mongocxx_dependencies})
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(test_driver PRIVATE /bigobj)
@@ -101,8 +101,8 @@ add_executable(test_gridfs_specs
     spec/gridfs.cpp
 )
 
-target_link_libraries(test_crud_specs mongocxx_mocked ${mongocxx_libs})
-target_link_libraries(test_gridfs_specs mongocxx_mocked ${mongocxx_libs})
+target_link_libraries(test_crud_specs mongocxx_mocked ${mongocxx_dependencies})
+target_link_libraries(test_gridfs_specs mongocxx_mocked ${mongocxx_dependencies})
 
 add_test(crud_specs test_crud_specs)
 add_test(gridfs_specs test_gridfs_specs)

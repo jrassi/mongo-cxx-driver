@@ -27,5 +27,5 @@ add_executable(test_bson
     view_or_value.cpp
 )
 
-target_link_libraries(test_bson bsoncxx_testing ${bsoncxx_libs})
+target_link_libraries(test_bson bsoncxx_testing ${bsoncxx_dependencies})
 add_test(bson test_bson)
