@@ -109,7 +109,7 @@ include_directories(
     ${CMAKE_BINARY_DIR}/src
 )
 
-# We define two libraries: the nonmal library and the testing-only library.  The testing-only
+# We define two libraries: the normal library and the testing-only library.  The testing-only
 # library does not get installed, but the tests link against it instead of the normal library.  The
 # only difference between the two libraries is that MONGOCXX_TESTING is defined in the testing-only
 # library (this define enables special testing-only behavior).
