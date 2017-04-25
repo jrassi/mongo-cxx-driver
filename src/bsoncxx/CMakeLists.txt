@@ -72,6 +72,13 @@ else()
     find_package(libbson-static-${LIBBSON_REQUIRED_ABI_VERSION} ${LIBBSON_REQUIRED_VERSION} REQUIRED)
 endif()
 
+# TODO:
+# - Handle BSON_STATIC_LIBRARIES / BSON_STATIC_INCLUDE_DIRS / BSON_STATIC_DEFINITIONS, when the
+#   libbson CMake files start to export them in CDRIVER-2083.
+set(libbson_libraries ${BSON_LIBRARIES})
+set(libbson_include_directories ${BSON_INCLUDE_DIRS})
+set(libbson_definitions ${BSON_DEFINITIONS})
+
 add_subdirectory(third_party)
 add_subdirectory(config)
 
@@ -95,7 +102,6 @@ set(bsoncxx_sources
 )
 
 include_directories(
-    ${BSON_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_BINARY_DIR}/src
 )
@@ -104,7 +110,7 @@ if (BSONCXX_POLY_USE_BOOST)
     find_package(Boost 1.56.0 REQUIRED)
 endif()
 
-# We define two libraries: the nonmal library and the testing-only library.  The testing-only
+# We define two libraries: the normal library and the testing-only library.  The testing-only
 # library does not get installed, but the tests link against it instead of the normal library.  The
 # only difference between the two libraries is that BSONCXX_TESTING is defined in the testing-only
 # library (this define enables special testing-only behavior).
@@ -170,13 +176,18 @@ elseif (BSONCXX_POLY_USE_BOOST)
     target_include_directories(bsoncxx_testing PUBLIC ${Boost_INCLUDE_DIRS})
 endif()
 
-set(bsoncxx_dependencies ${BSON_LIBRARIES})
+target_include_directories(bsoncxx PRIVATE ${libbson_include_directories})
+target_include_directories(bsoncxx_testing PRIVATE ${libbson_include_directories})
+
+target_compile_definitions(bsoncxx PRIVATE ${libbson_definitions})
+target_compile_definitions(bsoncxx_testing PRIVATE ${libbson_definitions})
+
 if (BUILD_SHARED_LIBS)
-    target_link_libraries(bsoncxx PRIVATE ${bsoncxx_dependencies})
-    target_link_libraries(bsoncxx_testing PRIVATE ${bsoncxx_dependencies})
+    target_link_libraries(bsoncxx PRIVATE ${libbson_libraries})
+    target_link_libraries(bsoncxx_testing PRIVATE ${libbson_libraries})
 else()
-    target_link_libraries(bsoncxx ${bsoncxx_dependencies})
-    target_link_libraries(bsoncxx_testing ${bsoncxx_dependencies})
+    target_link_libraries(bsoncxx ${libbson_libraries})
+    target_link_libraries(bsoncxx_testing ${libbson_libraries})
 endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

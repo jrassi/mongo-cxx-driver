@@ -14,15 +14,6 @@
 
 project(MONGOCXX)
 
-set(LIBMONGOC_REQUIRED_VERSION 1.7.0)
-set(LIBMONGOC_REQUIRED_ABI_VERSION 1.0)
-
-if (BUILD_SHARED_LIBS)
-    find_package(libmongoc-${LIBMONGOC_REQUIRED_ABI_VERSION} ${LIBMONGOC_REQUIRED_VERSION} REQUIRED)
-else()
-    find_package(libmongoc-static-${LIBMONGOC_REQUIRED_ABI_VERSION} ${LIBMONGOC_REQUIRED_VERSION} REQUIRED)
-endif()
-
 # Update these as needed.
 # TODO: read from file
 set(MONGOCXX_VERSION_MAJOR 3)
@@ -37,6 +28,30 @@ set(MONGOCXX_VERSION_NO_EXTRA ${MONGOCXX_VERSION_MAJOR}.${MONGOCXX_VERSION_MINOR
 set(MONGOCXX_VERSION ${MONGOCXX_VERSION_NO_EXTRA}${MONGOCXX_VERSION_EXTRA})
 set(MONGOCXX_INLINE_NAMESPACE "v${MONGOCXX_ABI_VERSION}")
 set(MONGOCXX_HEADER_INSTALL_DIR "include/mongocxx/${MONGOCXX_INLINE_NAMESPACE}" CACHE INTERNAL "")
+
+set(LIBMONGOC_REQUIRED_VERSION 1.7.0)
+set(LIBMONGOC_REQUIRED_ABI_VERSION 1.0)
+
+if (BUILD_SHARED_LIBS)
+    find_package(libmongoc-${LIBMONGOC_REQUIRED_ABI_VERSION} ${LIBMONGOC_REQUIRED_VERSION} REQUIRED)
+else()
+    find_package(libmongoc-static-${LIBMONGOC_REQUIRED_ABI_VERSION} ${LIBMONGOC_REQUIRED_VERSION} REQUIRED)
+endif()
+
+# TODO:
+# - Handle MONGOC_STATIC_LIBRARIES, when the mongoc CMake files start to export it in CDRIVER-2083.
+set(libmongoc_libraries ${MONGOC_LIBRARIES})
+
+# TODO:
+# - Handle MONGOC_STATIC_INCLUDE_DIRS, when the mongoc CMake files start to export it in
+#   CDRIVER-2083.
+set(libmongoc_include_directories ${MONGOC_INCLUDE_DIRS})
+
+# TODO:
+# - Handle MONGOC_DEFINITONS / MONGOC_STATIC_DEFINITIONS, when the mongoc CMake files start to
+#   export them in CDRIVER-2083.
+# - Remove BSON_DEFINITIONS, once MONGOC_DEFINITIONS includes BSON definitions in CDRIVER-2083.
+set(libmongoc_definitions ${BSON_DEFINITIONS})
 
 add_subdirectory(config)
 
@@ -104,7 +119,6 @@ set(mongocxx_sources
 )
 
 include_directories(
-    ${MONGOC_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_BINARY_DIR}/src
 )
@@ -167,13 +181,18 @@ generate_export_header(mongocxx_mocked
     STATIC_DEFINE MONGOCXX_STATIC
 )
 
-set(mongocxx_dependencies ${MONGOC_LIBRARIES})
+target_include_directories(mongocxx PRIVATE ${libmongoc_include_directories})
+target_include_directories(mongocxx_mocked PRIVATE ${libmongoc_include_directories})
+
+target_compile_definitions(mongocxx PRIVATE ${libmongoc_definitions})
+target_compile_definitions(mongocxx_mocked PRIVATE ${libmongoc_definitions})
+
 if (BUILD_SHARED_LIBS)
-    target_link_libraries(mongocxx PUBLIC bsoncxx PRIVATE ${mongocxx_dependencies})
-    target_link_libraries(mongocxx_mocked PUBLIC bsoncxx PRIVATE ${mongocxx_dependencies})
+    target_link_libraries(mongocxx PUBLIC bsoncxx PRIVATE ${libmongoc_libraries})
+    target_link_libraries(mongocxx_mocked PUBLIC bsoncxx PRIVATE ${libmongoc_libraries})
 else()
-    target_link_libraries(mongocxx bsoncxx ${mongocxx_dependencies})
-    target_link_libraries(mongocxx_mocked bsoncxx ${mongocxx_dependencies})
+    target_link_libraries(mongocxx bsoncxx ${libmongoc_libraries})
+    target_link_libraries(mongocxx_mocked bsoncxx ${libmongoc_libraries})
 endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

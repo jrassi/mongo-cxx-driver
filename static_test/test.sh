@@ -45,12 +45,10 @@ fi
 if [ "$UNIX" ]; then
     GENERATOR="Unix Makefiles"
     ADDL_OPTS=
-    DLM=":"
     EXEC_PREFIX=.
 else
     GENERATOR="Visual Studio 14 Win64"
     ADDL_OPTS="-DBOOST_ROOT=c:/local/boost_1_60_0"
-    DLM=";"
     PATH=/cygdrive/c/cmake/bin:$PATH
     PATH=/cygdrive/c/Program\ Files\ \(x86\)/MSBuild/14.0/Bin:$PATH
     EXEC_PREFIX=Debug
@@ -119,7 +117,7 @@ if [ "$WITH_CXX_DRIVER" ]; then
     rm -rf build
     git checkout build
     cd build
-    cmake -G "$GENERATOR" -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_INSTALL_PREFIX=$PREFIX/libmongocxx -DBUILD_SHARED_LIBS=$BUILD_SHARED_LIBS -DCMAKE_PREFIX_PATH="$PREFIX/libbson/lib/cmake/libbson-1.0${DLM}$PREFIX/libbson/lib/cmake/libbson-static-1.0${DLM}$PREFIX/libmongoc/lib/cmake/libmongoc-1.0${DLM}$PREFIX/libmongoc/lib/cmake/libmongoc-static-1.0" ${ADDL_OPTS} ..
+    cmake -G "$GENERATOR" -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_INSTALL_PREFIX=$PREFIX/libmongocxx -DBUILD_SHARED_LIBS=$BUILD_SHARED_LIBS -DCMAKE_PREFIX_PATH="$PREFIX/libbson/lib/cmake/libbson-1.0;$PREFIX/libbson/lib/cmake/libbson-static-1.0;$PREFIX/libmongoc/lib/cmake/libmongoc-1.0;$PREFIX/libmongoc/lib/cmake/libmongoc-static-1.0" ${ADDL_OPTS} ..
     _make
     _make install
     cd ..
@@ -142,14 +140,14 @@ popd
 if [ "$STATIC" ]; then
     mkdir -p find_package_bsoncxx_static/build
     cd find_package_bsoncxx_static/build
-    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-static-${MONGOCXX_VER}${DLM}$PREFIX/libbson/lib/cmake/libbson-static-1.0" ..
+    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-static-${MONGOCXX_VER};$PREFIX/libbson/lib/cmake/libbson-static-1.0" ..
     _make
     $EXEC_PREFIX/hello_bsoncxx
     cd ../..
 else
     mkdir -p find_package_bsoncxx/build
     cd find_package_bsoncxx/build
-    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-${MONGOCXX_VER}${DLM}$PREFIX/libbson/lib/cmake/libbson-1.0" ..
+    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-${MONGOCXX_VER};$PREFIX/libbson/lib/cmake/libbson-1.0" ..
     _make
     (
         export DYLD_LIBRARY_PATH=$PREFIX/libmongocxx/lib:$PREFIX/libbson/lib
@@ -162,14 +160,14 @@ fi
 if [ "$STATIC" ]; then
     mkdir -p find_package_mongocxx_static/build
     cd find_package_mongocxx_static/build
-    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-static-${MONGOCXX_VER}${DLM}$PREFIX/libbson/lib/cmake/libbson-static-1.0${DLM}$PREFIX/libmongoc/lib/cmake/libmongoc-static-1.0${DLM}$PREFIX/libmongocxx/lib/cmake/libmongocxx-static-${MONGOCXX_VER}" ..
+    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-static-${MONGOCXX_VER};$PREFIX/libbson/lib/cmake/libbson-static-1.0;$PREFIX/libmongoc/lib/cmake/libmongoc-static-1.0;$PREFIX/libmongocxx/lib/cmake/libmongocxx-static-${MONGOCXX_VER}" ..
     _make
     $EXEC_PREFIX/hello_mongocxx
     cd ../..
 else 
     mkdir -p find_package_mongocxx/build
     cd find_package_mongocxx/build
-    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-${MONGOCXX_VER}${DLM}$PREFIX/libmongocxx/lib/cmake/libmongocxx-${MONGOCXX_VER}" ..
+    cmake -G "$GENERATOR" -DCMAKE_PREFIX_PATH="$PREFIX/libmongocxx/lib/cmake/libbsoncxx-${MONGOCXX_VER};$PREFIX/libmongocxx/lib/cmake/libmongocxx-${MONGOCXX_VER}" ..
     _make
     (
         export DYLD_LIBRARY_PATH=$PREFIX/libmongocxx/lib:$PREFIX/libmongoc/lib:$PREFIX/libbson/lib

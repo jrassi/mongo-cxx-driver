@@ -139,7 +139,7 @@ and boost is in `c:\local\boost_1_59_0`:
 ```sh
 'C:\Program Files (x86)\CMake\bin\cmake.exe' -G "Visual Studio 14 Win64"
     -DCMAKE_INSTALL_PREFIX=C:\mongo-cxx-driver
-    -DCMAKE_PREFIX_PATH=c:\mongo-c-driver\lib\cmake\libbson-1.0;c:\mongo-c-driver\lib\cmake\libmongoc-1.0
+    -DCMAKE_PREFIX_PATH=c:\mongo-c-driver
     -DBOOST_ROOT=c:\local\boost_1_59_0
 ```
 
