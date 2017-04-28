@@ -39,27 +39,22 @@ esac
 
 echo "About to install C driver ($VERSION) into $PREFIX"
 
-#LIB=mongo-c-driver
-#if [ -n "$(echo "${VERSION}" | grep '^[a-z]' )" ]; then
-#    rm -rf $LIB
-#    # Must be http as rhel55 has https issues
-#    curl -o $LIB.tgz -L http://s3.amazonaws.com/mciuploads/$LIB/$VERSION/$LIB-latest.tar.gz
-#    tar --extract --file $LIB.tgz
-#    rm -rf $LIB
-#    DIR=$(echo $LIB-*)
-#else
-#    DIR=$LIB-${VERSION}
-#    rm -rf $LIB.tgz $DIR
-#    curl -o $LIB.tgz -L https://github.com/mongodb/$LIB/releases/download/${VERSION}/$LIB-${VERSION}.tar.gz
-#    tar --extract --file $LIB.tgz
-#fi
+LIB=mongo-c-driver
+if [ -n "$(echo "${VERSION}" | grep '^[a-z]' )" ]; then
+    rm -rf $LIB
+    # Must be http as rhel55 has https issues
+    curl -o $LIB.tgz -L http://s3.amazonaws.com/mciuploads/$LIB/$VERSION/$LIB-latest.tar.gz
+    tar --extract --file $LIB.tgz
+    rm -rf $LIB
+    DIR=$(echo $LIB-*)
+else
+    DIR=$LIB-${VERSION}
+    rm -rf $LIB.tgz $DIR
+    curl -o $LIB.tgz -L https://github.com/mongodb/$LIB/releases/download/${VERSION}/$LIB-${VERSION}.tar.gz
+    tar --extract --file $LIB.tgz
+fi
 
-git clone git@github.com:mongodb/mongo-c-driver
-
-cd mongo-c-driver
-#git checkout CXX-1257-revise-static-linking
-git submodule init
-git submodule update
+cd $DIR
 
 compile_and_install() {
     if [ -f /proc/cpuinfo ]; then
@@ -73,7 +68,6 @@ compile_and_install() {
 
     case "$OS" in
         darwin|linux)
-            ./autogen.sh
             PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig" ./configure "$@"
             make "-j$CONCURRENCY"
             make install
