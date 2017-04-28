@@ -34,24 +34,15 @@ set(LIBMONGOC_REQUIRED_ABI_VERSION 1.0)
 
 if (BUILD_SHARED_LIBS)
     find_package(libmongoc-${LIBMONGOC_REQUIRED_ABI_VERSION} ${LIBMONGOC_REQUIRED_VERSION} REQUIRED)
+    set(libmongoc_libraries ${MONGOC_LIBRARIES})
+    set(libmongoc_include_directories ${MONGOC_INCLUDE_DIRS})
+    set(libmongoc_definitions ${MONGOC_DEFINITIONS})
 else()
     find_package(libmongoc-static-${LIBMONGOC_REQUIRED_ABI_VERSION} ${LIBMONGOC_REQUIRED_VERSION} REQUIRED)
+    set(libmongoc_libraries ${MONGOC_STATIC_LIBRARIES})
+    set(libmongoc_include_directories ${MONGOC_STATIC_INCLUDE_DIRS})
+    set(libmongoc_definitions ${MONGOC_STATIC_DEFINITIONS})
 endif()
-
-# TODO:
-# - Handle MONGOC_STATIC_LIBRARIES, when the mongoc CMake files start to export it in CDRIVER-2083.
-set(libmongoc_libraries ${MONGOC_LIBRARIES})
-
-# TODO:
-# - Handle MONGOC_STATIC_INCLUDE_DIRS, when the mongoc CMake files start to export it in
-#   CDRIVER-2083.
-set(libmongoc_include_directories ${MONGOC_INCLUDE_DIRS})
-
-# TODO:
-# - Handle MONGOC_DEFINITONS / MONGOC_STATIC_DEFINITIONS, when the mongoc CMake files start to
-#   export them in CDRIVER-2083.
-# - Remove BSON_DEFINITIONS, once MONGOC_DEFINITIONS includes BSON definitions in CDRIVER-2083.
-set(libmongoc_definitions ${BSON_DEFINITIONS})
 
 add_subdirectory(config)
 

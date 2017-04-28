@@ -54,10 +54,10 @@ echo "About to install C driver ($VERSION) into $PREFIX"
 #    tar --extract --file $LIB.tgz
 #fi
 
-git clone git@github.com:jrassi/mongo-c-driver
+git clone git@github.com:mongodb/mongo-c-driver
 
 cd mongo-c-driver
-git checkout CXX-1257-revise-static-linking
+#git checkout CXX-1257-revise-static-linking
 git submodule init
 git submodule update
 

@@ -68,16 +68,15 @@ set(LIBBSON_REQUIRED_ABI_VERSION 1.0)
 
 if (BUILD_SHARED_LIBS)
     find_package(libbson-${LIBBSON_REQUIRED_ABI_VERSION} ${LIBBSON_REQUIRED_VERSION} REQUIRED)
+    set(libbson_libraries ${BSON_LIBRARIES})
+    set(libbson_include_directories ${BSON_INCLUDE_DIRS})
+    set(libbson_definitions ${BSON_DEFINITIONS})
 else()
     find_package(libbson-static-${LIBBSON_REQUIRED_ABI_VERSION} ${LIBBSON_REQUIRED_VERSION} REQUIRED)
+    set(libbson_libraries ${BSON_STATIC_LIBRARIES})
+    set(libbson_include_directories ${BSON_STATIC_INCLUDE_DIRS})
+    set(libbson_definitions ${BSON_STATIC_DEFINITIONS})
 endif()
-
-# TODO:
-# - Handle BSON_STATIC_LIBRARIES / BSON_STATIC_INCLUDE_DIRS / BSON_STATIC_DEFINITIONS, when the
-#   libbson CMake files start to export them in CDRIVER-2083.
-set(libbson_libraries ${BSON_LIBRARIES})
-set(libbson_include_directories ${BSON_INCLUDE_DIRS})
-set(libbson_definitions ${BSON_DEFINITIONS})
 
 add_subdirectory(third_party)
 add_subdirectory(config)

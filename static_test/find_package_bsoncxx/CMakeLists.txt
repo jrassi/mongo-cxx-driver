@@ -40,6 +40,8 @@ find_package(libbsoncxx REQUIRED)
 
 add_executable(hello_bsoncxx hello_bsoncxx.cpp)
 
+#target_compile_definitions(hello_bsoncxx PRI
+
 target_include_directories(hello_bsoncxx
   PRIVATE ${LIBBSONCXX_INCLUDE_DIRS}
 )

@@ -21,7 +21,7 @@ if(POLICY CMP0025)
   cmake_policy(SET CMP0025 NEW)
 endif()
 
-project(MONGO_CXX_DRIVER LANGUAGES CXX)
+project(MONGO_CXX_DRIVER LANGUAGES C CXX)
 
 # Enforce the C++ standard, and disable extensions
 if(NOT DEFINED CMAKE_CXX_STANDARD)
@@ -49,3 +49,5 @@ message(STATUS "LIBBSONCXX_LIBRARIES: ${LIBBSONCXX_LIBRARIES}")
 target_link_libraries(hello_bsoncxx
   PRIVATE ${LIBBSONCXX_LIBRARIES}
 )
+
+target_compile_definitions(hello_bsoncxx PRIVATE ${LIBBSONCXX_DEFINITIONS})
